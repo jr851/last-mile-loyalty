@@ -53,7 +53,7 @@ function toPem(buf: Buffer, type: string = 'CERTIFICATE'): string {
 
 /**
  * Sign manifest data using node-forge for proper PKCS#7 SignedData.
- * node-forge is battle-tested for cryptographic operations and ASN.1 encoding.
+ * Properly handles both encrypted and unencrypted private keys.
  */
 function signWithNodeCrypto(
   manifestData: Buffer,
@@ -68,24 +68,29 @@ function signWithNodeCrypto(
   const signerCert = forge.pki.certificateFromPem(certPem)
   const wwdrCert = forge.pki.certificateFromPem(wwdrPem)
   
-  // Parse private key
-  const privateKey = forge.pki.decryptRsaPrivateKey(keyPem, passphrase || undefined)
+  // Parse private key - handle both encrypted and unencrypted keys
+  let privateKey
+  try {
+    // First try to parse as unencrypted key
+    privateKey = forge.pki.privateKeyFromPem(keyPem)
+  } catch (e) {
+    // If that fails, try decrypting with passphrase
+    try {
+      privateKey = forge.pki.decryptRsaPrivateKey(keyPem, passphrase || undefined)
+    } catch (e2) {
+      throw new Error(`Failed to parse private key: ${e2}`)
+    }
+  }
   
-  // Create MessageDigest
-  const md = forge.md.sha256.create()
-  md.update(manifestData.toString('binary'))
-  
-  // Create PKCS#7 SignedData
+  // Create PKCS#7 SignedData for detached signature
   const p7 = forge.pkcs7.createSignedData()
-  
-  // Set content (empty for detached signature)
   p7.content = forge.util.createBuffer('', 'raw')
   
-  // Add certificates
+  // Add certificates to signature
   p7.addCertificate(signerCert)
   p7.addCertificate(wwdrCert)
   
-  // Sign with the manifest data
+  // Add signer with manifest data
   p7.addSigner({
     key: privateKey,
     certificate: signerCert,
@@ -97,7 +102,7 @@ function signWithNodeCrypto(
       },
       {
         type: forge.oids.messageDigest,
-        value: md.digest().getBytes(),
+        value: forge.md.sha256.create().update(manifestData.toString('binary')).digest().getBytes(),
       },
       {
         type: forge.oids.signingTime,
@@ -106,13 +111,13 @@ function signWithNodeCrypto(
     ],
   })
   
-  // Sign
+  // Create detached signature
   p7.sign({ detached: true })
   
-  // Convert to DER
-  const der = forge.asn1.toDer(p7.toAsn1()).getBytes()
+  // Get ASN.1 and convert to DER
+  const asn1 = p7.toAsn1()
+  const der = forge.asn1.toDer(asn1).getBytes()
   
-  // Return as Buffer
   return Buffer.from(der, 'binary')
 }
 
