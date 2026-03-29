@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loyalty Card – Counter Sign</title>
+  <style>
+    /* ---- PRINT SETUP ---- */
+    @page {
+      size: A5 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 148mm;
+      height: 210mm;
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* ---- CARD ---- */
+    .card {
+      width: 148mm;
+      height: 210mm;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* TOP BAND */
+    .header {
+      background: #F59E0B;
+      color: #fff;
+      padding: 18mm 12mm 10mm;
+      text-align: center;
+    }
+
+    .coffee-icon {
+      font-size: 36pt;
+      line-height: 1;
+      margin-bottom: 3mm;
+    }
+
+    .headline {
+      font-size: 22pt;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+
+    .subheadline {
+      font-size: 11pt;
+      font-weight: 500;
+      margin-top: 2mm;
+      color: rgba(255,255,255,0.88);
+    }
+
+    /* REWARD STRIP */
+    .reward-strip {
+      background: #92400E;
+      color: #fde68a;
+      text-align: center;
+      padding: 3.5mm 10mm;
+      font-size: 10pt;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* BODY */
+    .body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      padding: 6mm 10mm;
+    }
+
+    /* STEPS */
+    .steps {
+      width: 100%;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 5mm;
+      margin-bottom: 5mm;
+    }
+
+    .step-num {
+      background: #F59E0B;
+      color: #fff;
+      width: 8mm;
+      height: 8mm;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10pt;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      padding-top: 0.5mm;
+    }
+
+    .step-title {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1f2937;
+      line-height: 1.3;
+    }
+
+    .step-desc {
+      font-size: 8.5pt;
+      color: #6b7280;
+      margin-top: 0.5mm;
+      line-height: 1.35;
+    }
+
+    /* QR SECTION */
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3mm;
+    }
+
+    .qr-frame {
+      background: #F59E0B;
+      border-radius: 4mm;
+      padding: 3mm;
+      display: inline-block;
+    }
+
+    .qr-inner {
+      background: #fff;
+      border-radius: 2mm;
+      padding: 2mm;
+      display: block;
+    }
+
+    .qr-frame img {
+      display: block;
+      width: 32mm;
+      height: 32mm;
+    }
+
+    .qr-label {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #374151;
+      text-align: center;
+    }
+
+    /* FOOTER */
+    .footer {
+      background: #fef3c7;
+      border-top: 0.5mm solid #fde68a;
+      padding: 3mm 10mm;
+      text-align: center;
+    }
+
+    .footer-pills {
+      display: flex;
+      justify-content: center;
+      gap: 4mm;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      font-size: 7.5pt;
+      color: #92400E;
+      font-weight: 600;
+    }
+
+    .pill::before {
+      content: "✓ ";
+    }
+
+    /* ---- PRINT-ONLY NOTE (hidden on screen) ---- */
+    .print-note {
+      display: none;
+    }
+
+    /* ---- SCREEN PREVIEW STYLES ---- */
+    @media screen {
+      body {
+        background: #e5e7eb;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .card {
+        box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+        border-radius: 4mm;
+        overflow: hidden;
+      }
+
+      .print-note {
+        display: block;
+        background: #1f2937;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: -apple-system, Arial, sans-serif;
+        text-align: center;
+        max-width: 148mm;
+      }
+
+      .print-note strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-note">
+    <strong>Printing instructions</strong>
+    File → Print → set paper size to A5, scale to fit. Replace the QR code URL below with your own from the owner dashboard.
+  </div>
+
+  <div class="card">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="coffee-icon">☕</div>
+      <div class="headline">Collect stamps.<br>Earn rewards.</div>
+      <div class="subheadline">Join our free loyalty programme — no app needed</div>
+    </div>
+
+    <!-- REWARD STRIP: edit to match your reward -->
+    <div class="reward-strip">
+      ✦ Collect 8 stamps → earn a free drink ✦
+    </div>
+
+    <!-- BODY -->
+    <div class="body">
+
+      <!-- HOW IT WORKS -->
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <div class="step-title">Scan the QR code below</div>
+            <div class="step-desc">Takes 30 seconds — works on any phone</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <div class="step-title">Enter your name &amp; mobile number</div>
+            <div class="step-desc">We save your card so you never lose your stamps</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <div class="step-title">Show your QR code on every visit</div>
+            <div class="step-desc">Bookmark your card — staff scan your QR to stamp it</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR CODE -->
+      <!--
+        OWNER NOTE: Replace the QR image URL below with your own unique join link
+        from your owner dashboard → QR Code tab → Copy link, then paste it into:
+        https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=YOUR_LINK_HERE
+      -->
+      <div class="qr-section">
+        <div class="qr-frame">
+          <span class="qr-inner">
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&ecc=M&data=https://loyalty-app-cld.pages.dev/join/?b=your-cafe"
+              alt="Scan to join"
+              width="128"
+              height="128"
+            />
+          </span>
+        </div>
+        <div class="qr-label">Scan to join</div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-pills">
+        <span class="pill">Free to join</span>
+        <span class="pill">No app download</span>
+        <span class="pill">Your stamps never expire</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

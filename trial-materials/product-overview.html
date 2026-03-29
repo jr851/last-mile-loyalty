@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loyalty — Enterprise loyalty intelligence for independent cafés</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1A1A2E;
+      --blue: #4A90D9;
+      --blue-light: #EEF3FB;
+      --green: #2ECC71;
+      --amber: #F39C12;
+      --red: #E74C3C;
+      --gray-50: #FAFAF9;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-400: #9CA3AF;
+      --gray-600: #6B7280;
+      --gray-800: #1F2937;
+      --text: #1A1A2E;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: white;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--navy); letter-spacing: -0.02em; }
+    .nav-logo span { color: var(--blue); }
+    .nav-cta {
+      background: var(--blue); color: white;
+      padding: 0.5rem 1.25rem; border-radius: 8px;
+      text-decoration: none; font-size: 0.875rem; font-weight: 600;
+      transition: background 0.15s;
+    }
+    .nav-cta:hover { background: #3a7abf; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #2d3561 100%);
+      color: white;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(74,144,217,0.25);
+      border: 1px solid rgba(74,144,217,0.5);
+      color: #93C5FD;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 800; line-height: 1.15; letter-spacing: -0.03em;
+      margin-bottom: 1.25rem; max-width: 720px; margin-left: auto; margin-right: auto;
+    }
+    .hero h1 em { font-style: normal; color: #93C5FD; }
+    .hero p {
+      font-size: 1.125rem; color: rgba(255,255,255,0.75);
+      max-width: 560px; margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--blue); color: white;
+      padding: 0.875rem 2rem; border-radius: 10px;
+      text-decoration: none; font-weight: 700; font-size: 1rem;
+      transition: background 0.15s; display: inline-block;
+    }
+    .btn-primary:hover { background: #3a7abf; }
+    .btn-outline {
+      background: transparent; color: white;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      padding: 0.875rem 2rem; border-radius: 10px;
+      text-decoration: none; font-weight: 600; font-size: 1rem;
+      transition: border-color 0.15s; display: inline-block;
+    }
+    .btn-outline:hover { border-color: white; }
+
+    /* CREDIBILITY BAR */
+    .cred-bar {
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 1.25rem 2rem;
+      text-align: center;
+    }
+    .cred-bar p {
+      font-size: 0.875rem; color: var(--gray-600);
+      max-width: 800px; margin: 0 auto;
+    }
+    .cred-bar strong { color: var(--gray-800); }
+
+    /* SECTIONS */
+    section { padding: 4rem 2rem; max-width: 960px; margin: 0 auto; }
+    section.full-width { max-width: 100%; padding: 4rem 2rem; }
+
+    .section-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 800; letter-spacing: -0.025em; line-height: 1.2;
+      margin-bottom: 1rem; color: var(--navy);
+    }
+    .section-intro {
+      font-size: 1.05rem; color: var(--gray-600);
+      max-width: 620px; line-height: 1.75; margin-bottom: 3rem;
+    }
+
+    /* PROBLEM SECTION */
+    .problem { background: var(--gray-50); }
+    .problem-inner { max-width: 960px; margin: 0 auto; padding: 4rem 2rem; }
+    .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+    @media (max-width: 640px) { .problem-grid { grid-template-columns: 1fr; } }
+    .problem-card {
+      background: white; border: 1px solid var(--gray-200);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .problem-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem-card p { font-size: 0.9rem; color: var(--gray-600); line-height: 1.6; }
+
+    /* DIFFERENTIATORS */
+    .diff-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    @media (max-width: 768px) { .diff-grid { grid-template-columns: 1fr; } }
+    .diff-card {
+      background: var(--blue-light);
+      border: 1px solid #C7D9F5;
+      border-radius: 14px; padding: 1.75rem;
+    }
+    .diff-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+    .diff-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .diff-card p { font-size: 0.875rem; color: var(--gray-600); line-height: 1.65; }
+
+    /* HOW IT WORKS */
+    .how { background: var(--gray-50); }
+    .how-inner { max-width: 960px; margin: 0 auto; padding: 4rem 2rem; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 2.5rem; }
+    @media (max-width: 768px) { .steps { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .steps { grid-template-columns: 1fr; } }
+    .step {
+      background: white; border: 1px solid var(--gray-200);
+      border-radius: 14px; padding: 1.5rem; position: relative;
+    }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--blue); color: white;
+      font-size: 0.875rem; font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    .step h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--navy); }
+    .step p { font-size: 0.825rem; color: var(--gray-600); line-height: 1.55; }
+
+    /* COMPARISON TABLE */
+    .comparison { overflow-x: auto; }
+    .comp-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.9rem; border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--gray-200);
+      margin-top: 2rem;
+    }
+    .comp-table thead tr { background: var(--navy); color: white; }
+    .comp-table th { padding: 1rem 1.25rem; text-align: left; font-weight: 700; font-size: 0.85rem; }
+    .comp-table th:first-child { border-radius: 0; }
+    .comp-table tbody tr:nth-child(even) { background: var(--gray-50); }
+    .comp-table td { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--gray-200); vertical-align: middle; }
+    .comp-table td:first-child { font-weight: 600; color: var(--navy); }
+    .tick { color: var(--green); font-size: 1rem; }
+    .cross { color: var(--red); font-size: 1rem; }
+    .partial { color: var(--amber); font-size: 0.8rem; font-weight: 600; }
+    .highlight-col { background: #EEF3FB !important; }
+    .comp-table th.highlight-col { background: var(--blue) !important; }
+
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+    @media (max-width: 640px) { .pricing-grid { grid-template-columns: 1fr; } }
+    .price-card {
+      border: 1.5px solid var(--gray-200);
+      border-radius: 16px; padding: 2rem;
+    }
+    .price-card.featured {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+      position: relative;
+    }
+    .price-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--blue); color: white;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 0.2rem 0.75rem; border-radius: 100px;
+      white-space: nowrap;
+    }
+    .price-tier { font-size: 0.8rem; font-weight: 700; color: var(--blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .price-amount { font-size: 2.25rem; font-weight: 800; color: var(--navy); line-height: 1; }
+    .price-amount span { font-size: 1rem; font-weight: 500; color: var(--gray-600); }
+    .price-desc { font-size: 0.875rem; color: var(--gray-600); margin: 0.5rem 0 1.25rem; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.75rem; }
+    .price-features li { font-size: 0.875rem; color: var(--gray-800); display: flex; gap: 0.5rem; align-items: flex-start; }
+    .price-features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 0.05em; }
+    .btn-full {
+      display: block; text-align: center;
+      background: var(--blue); color: white;
+      padding: 0.8rem; border-radius: 10px;
+      text-decoration: none; font-weight: 700; font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .btn-full:hover { background: #3a7abf; }
+    .btn-full.ghost {
+      background: white; color: var(--navy);
+      border: 1.5px solid var(--gray-200);
+    }
+    .btn-full.ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* CTA BANNER */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, #2d3561 100%);
+      color: white; text-align: center;
+      padding: 4rem 2rem;
+    }
+    .cta-banner h2 { color: white; margin-bottom: 0.75rem; }
+    .cta-banner p { color: rgba(255,255,255,0.7); margin-bottom: 2rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--gray-200);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.8rem; color: var(--gray-400);
+    }
+
+    /* UTILS */
+    .text-center { text-align: center; }
+    .mt-2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">loyalty<span>.</span></div>
+  <a href="https://loyalty-app-cld.pages.dev/auth/signup" class="nav-cta">Start free trial</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Now in trial — independent cafés only</div>
+  <h1>Enterprise loyalty intelligence,<br><em>independent café price.</em></h1>
+  <p>Built by someone with 25 years in retail and 10 years leading enterprise loyalty at Eagle Eye — now available to your café for less than a daily coffee.</p>
+  <div class="hero-ctas">
+    <a href="https://loyalty-app-cld.pages.dev/auth/signup" class="btn-primary">Start your free trial</a>
+    <a href="#how-it-works" class="btn-outline">See how it works</a>
+  </div>
+</div>
+
+<!-- CREDIBILITY BAR -->
+<div class="cred-bar">
+  <p>Designed by <strong>Jonathan Reeve</strong> — 25 years in retail at businesses including <strong>Tesco</strong> and <strong>Coles</strong>, and the last 10 years as Regional Head of <strong>Eagle Eye</strong>, the personalised loyalty platform behind enterprise programmes at <strong>Tesco</strong>, <strong>Woolworths</strong>, and <strong>Endeavour Group</strong>. The product instincts behind those programmes are baked into every default.</p>
+</div>
+
+<!-- PROBLEM -->
+<div class="problem">
+  <div class="problem-inner">
+    <div class="section-label">The honest problem</div>
+    <h2>Most café loyalty apps do the basics. No more.</h2>
+    <p class="section-intro">Most digital stamp card tools for independent cafés count stamps and reset. The tools that drive real repeat behaviour — targeted promotions, broadcast messaging, offer logic — have traditionally only been available to chains with enterprise budgets.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <h3>What most loyalty apps give you</h3>
+        <p>A stamp counter. A reset button. Maybe a dashboard. What's available to most independents today is a digital version of the paper punch card — without the offer logic, messaging tools, or promotion mechanics that make loyalty actually work.</p>
+      </div>
+      <div class="problem-card">
+        <h3>What independent cafés actually need</h3>
+        <p>The ability to drive footfall on a quiet Tuesday. To tell your regulars about Friday's special. To run a double-stamps event without printing new cards. The tools that make loyalty work — not just track it.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIFFERENTIATORS -->
+<section>
+  <div class="section-label">What makes this different</div>
+  <h2>Built from the inside out, not the outside in.</h2>
+  <p class="section-intro">Two decades in retail and ten years leading enterprise loyalty at Eagle Eye means the product design starts from how loyalty actually drives behaviour — not from what's easiest to build.</p>
+  <div class="diff-grid">
+    <div class="diff-card">
+      <div class="diff-icon">📣</div>
+      <h3>Broadcast to all members instantly</h3>
+      <p>Type a short message — "Free slice with any hot drink this Friday" — and it appears as a banner on every customer's loyalty card the next time they open it. Free. Instant. No SMS costs.</p>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">⚡</div>
+      <h3>Double stamps for quiet days</h3>
+      <p>One tap in your dashboard toggles double stamps for every customer. Drive footfall on a slow Monday without discounting. The kind of real-time offer logic that chains use to manage demand.</p>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">📷</div>
+      <h3>QR-first, no hardware needed</h3>
+      <p>Customers have a personal QR code. Staff scan it with any phone's camera — no app, no POS integration, no hardware to buy. Fully operational in the time it takes to print one sign.</p>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">🎯</div>
+      <h3>First stamp on sign-up</h3>
+      <p>Customers earn their first stamp the moment they join. A small detail — but it's the difference between a card that feels half-empty and one that's already in progress. Proven to improve activation.</p>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">🔒</div>
+      <h3>No app download required</h3>
+      <p>Customers bookmark their loyalty card in their phone's browser. No app store friction, no download barrier, no push notification permissions to worry about. Lower barrier, higher adoption.</p>
+    </div>
+    <div class="diff-card">
+      <div class="diff-icon">📊</div>
+      <h3>Built on 10 years at Eagle Eye</h3>
+      <p>The stamp thresholds, reward mechanics, and default settings aren't guesses — they're informed by leading enterprise loyalty at Eagle Eye, the platform behind programmes at Tesco, Woolworths, and Endeavour Group.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<div class="how" id="how-it-works">
+  <div class="how-inner">
+    <div class="section-label">Getting started</div>
+    <h2>Up and running in under ten minutes.</h2>
+    <p class="section-intro">No technical setup. No hardware. No waiting.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Sign up in 2 minutes</h3>
+        <p>Choose your café name, brand colour, stamp target, and reward. Done.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Print your counter sign</h3>
+        <p>Download your unique QR code and print the A5 counter card template. Place on counter.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Customers scan and join</h3>
+        <p>One scan, name and mobile number — they're enrolled with their first stamp in under 30 seconds. They then save their card to their home screen for instant access on every future visit.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Staff scan to stamp</h3>
+        <p>Customer opens their home screen card and shows their QR. Staff scan with any phone camera, enter PIN, tap "Add stamp". About ten seconds per visit.</p>
+      </div>
+    </div>
+    <!-- Home screen callout -->
+    <div style="margin-top:2rem;background:white;border:1px solid var(--gray-200);border-radius:14px;padding:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:start;">
+      <div style="grid-column:1/-1;">
+        <p style="font-size:0.875rem;font-weight:700;color:var(--navy);margin-bottom:0.25rem;">📌 How customers find their card on every visit</p>
+        <p style="font-size:0.825rem;color:var(--gray-600);">After joining, customers save their card to their phone's home screen. One tap opens their card instantly — no app, no login, no searching.</p>
+      </div>
+      <div style="background:var(--gray-50);border-radius:10px;padding:1rem;text-align:center;">
+        <p style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;">iPhone</p>
+        <p style="font-size:0.775rem;color:var(--gray-600);">Tap <strong>Share</strong> → <strong>Add to Home Screen</strong></p>
+      </div>
+      <div style="background:var(--gray-50);border-radius:10px;padding:1rem;text-align:center;">
+        <p style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;">Android</p>
+        <p style="font-size:0.775rem;color:var(--gray-600);">Tap <strong>Menu ⋮</strong> → <strong>Add to Home Screen</strong></p>
+      </div>
+      <div style="background:var(--gray-50);border-radius:10px;padding:1rem;text-align:center;">
+        <p style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;">Lost their card?</p>
+        <p style="font-size:0.775rem;color:var(--gray-600);">Re-scan the counter QR with the same mobile number — stamps restored instantly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT'S INCLUDED -->
+<section>
+  <div class="section-label">Everything included</div>
+  <h2>Not just another stamp counter.</h2>
+  <p class="section-intro">Every feature is included from day one — no locked tiers, no hardware to buy, no POS integration required.</p>
+  <div class="comparison">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="highlight-col">Included on free trial</th>
+          <th class="highlight-col">Included on Standard (£29/mo)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Digital stamp card with personal customer QR</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>No app download for customers</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>Broadcast message to all members</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>Double stamps toggle</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>QR-scan stamping — no POS or hardware needed</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>Owner dashboard with live stats</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>UK GDPR privacy notice included</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>Printable A5 counter card template</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+        </tr>
+        <tr>
+          <td>Direct support from Jonathan</td>
+          <td class="highlight-col"><span class="tick">✓</span></td>
+          <td class="highlight-col"><span class="tick">✓ Priority</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section>
+  <div class="section-label">Pricing</div>
+  <h2>Simple, honest pricing.</h2>
+  <p class="section-intro">Start free. Pay when it's working for you.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-tier">Free Trial</div>
+      <div class="price-amount">£0 <span>/ month</span></div>
+      <div class="price-desc">For the duration of the trial. No card required.</div>
+      <ul class="price-features">
+        <li>Unlimited customers &amp; stamps</li>
+        <li>Full dashboard &amp; reward tracking</li>
+        <li>Broadcast messaging</li>
+        <li>Double stamps toggle</li>
+        <li>A5 counter card template</li>
+        <li>Direct support from Jonathan</li>
+      </ul>
+      <a href="https://loyalty-app-cld.pages.dev/auth/signup" class="btn-full ghost">Start free trial</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Coming after trial</div>
+      <div class="price-tier">Standard</div>
+      <div class="price-amount">£29 <span>/ month</span></div>
+      <div class="price-desc">Everything in the trial, ongoing.</div>
+      <ul class="price-features">
+        <li>Unlimited customers &amp; stamps</li>
+        <li>Full dashboard &amp; reward tracking</li>
+        <li>Broadcast messaging</li>
+        <li>Double stamps toggle</li>
+        <li>Priority support</li>
+        <li>Early access to new features</li>
+      </ul>
+      <a href="https://loyalty-app-cld.pages.dev/auth/signup" class="btn-full">Get started free</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <h2>Ready to bring real loyalty tools to your café?</h2>
+  <p>Free trial, no card required. Up and running in under ten minutes.</p>
+  <a href="https://loyalty-app-cld.pages.dev/auth/signup" class="btn-primary">Start your free trial →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>Questions? Email <a href="mailto:jonathan.reeve@eagleeye.com" style="color:inherit;">jonathan.reeve@eagleeye.com</a> &nbsp;·&nbsp; Built by Jonathan Reeve &nbsp;·&nbsp; <a href="https://loyalty-app-cld.pages.dev/auth/signup" style="color:inherit;">Sign up</a></p>
+</footer>
+
+</body>
+</html>
