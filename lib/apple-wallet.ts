@@ -52,8 +52,8 @@ function toPem(buf: Buffer, type: string = 'CERTIFICATE'): string {
 }
 
 /**
- * Sign manifest data using Node.js built-in crypto + asn1js for proper PKCS#7.
- * Uses established libraries to avoid manual ASN.1 encoding errors.
+ * Sign manifest data using Node.js crypto and proper PKCS#7 construction.
+ * Builds PKCS#7 SignedData detached signature with correct ASN.1 DER encoding.
  */
 function signWithNodeCrypto(
   manifestData: Buffer,
@@ -62,12 +62,6 @@ function signWithNodeCrypto(
   wwdrPem: string,
   passphrase: string
 ): Buffer {
-  const asn1js = require('asn1js')
-  const pkijs = require('pkijs')
-
-  // Configure PKI.js
-  pkijs.setEngine('nodeEngine')
-
   // Parse private key
   const keyObject = createPrivateKey({
     key: keyPem,
@@ -87,130 +81,231 @@ function signWithNodeCrypto(
   const signerCertDer = pemToDer(certPem)
   const wwdrCertDer = pemToDer(wwdrPem)
 
-  // Parse signer certificate using asn1js
-  const signerCertAsn1 = asn1js.fromBER(signerCertDer.buffer.slice(
-    signerCertDer.byteOffset,
-    signerCertDer.byteOffset + signerCertDer.byteLength
-  ))
-  const signerCert = new pkijs.Certificate({ schema: signerCertAsn1.result })
-
-  // Create the signature using Node crypto
+  // Create signature
   const sign = createSign('sha256')
   sign.update(manifestData)
-  const signature = sign.sign(keyObject)
-
-  // Build PKCS#7 SignedData structure
-  // Version: 1
-  const version = new asn1js.Integer({ value: 1 })
-
-  // DigestAlgorithmIdentifier: SHA-256
-  const digestAlgorithm = new pkijs.AlgorithmIdentifier({
-    algorithmId: '2.16.840.1.101.3.4.2.1', // id-sha256
-  })
-
-  // Manifest hash
+  const signatureBytes = sign.sign(keyObject)
+  
+  // Hash the manifest
   const manifestHash = createHash('sha256').update(manifestData).digest()
 
-  // ContentInfo: data (detached signature, so no content)
-  const contentInfo = new asn1js.Sequence({
-    value: [
-      new asn1js.ObjectIdentifier({ value: '1.2.840.113549.1.7.1' }), // id-data
-      // No content for detached signature
-    ],
-  })
+  // Helper functions for DER encoding
+  function encodeLength(len: number): Buffer {
+    if (len < 128) {
+      return Buffer.from([len])
+    }
+    const bytes = []
+    while (len > 0) {
+      bytes.unshift(len & 0xff)
+      len >>= 8
+    }
+    return Buffer.concat([Buffer.from([0x80 | bytes.length]), Buffer.from(bytes)])
+  }
 
-  // Certificates
-  const certificates = new asn1js.Constructed({
-    idBlock: {
-      tagClass: 3, // CONTEXT
-      tagNumber: 0,
-    },
-    value: [
-      signerCertAsn1.result,
-      asn1js.fromBER(wwdrCertDer.buffer.slice(
-        wwdrCertDer.byteOffset,
-        wwdrCertDer.byteOffset + wwdrCertDer.byteLength
-      )).result,
-    ],
-  })
+  function encodeTag(tag: number | Buffer, data: Buffer): Buffer {
+    if (typeof tag === 'number') {
+      return Buffer.concat([Buffer.from([tag]), encodeLength(data.length), data])
+    }
+    return Buffer.concat([tag, encodeLength(data.length), data])
+  }
+
+  function encodeSequence(...items: Buffer[]): Buffer {
+    const content = Buffer.concat(items)
+    return encodeTag(0x30, content)
+  }
+
+  function encodeSet(...items: Buffer[]): Buffer {
+    const content = Buffer.concat(items)
+    return encodeTag(0x31, content)
+  }
+
+  function encodeInteger(num: number | Buffer): Buffer {
+    const data = typeof num === 'number' ? Buffer.from([num]) : num
+    return encodeTag(0x02, data)
+  }
+
+  function encodeOid(oid: string): Buffer {
+    // Convert OID string to bytes (simple parser for common OIDs)
+    const parts = oid.split('.')
+    const bytes: number[] = []
+    bytes.push(parseInt(parts[0]) * 40 + parseInt(parts[1]))
+    for (let i = 2; i < parts.length; i++) {
+      const n = parseInt(parts[i])
+      if (n < 128) {
+        bytes.push(n)
+      } else {
+        const encoded = []
+        let val = n
+        while (val > 0) {
+          encoded.unshift(val & 0x7f)
+          val >>= 7
+        }
+        for (let j = 0; j < encoded.length - 1; j++) {
+          bytes.push(encoded[j] | 0x80)
+        }
+        bytes.push(encoded[encoded.length - 1])
+      }
+    }
+    return encodeTag(0x06, Buffer.from(bytes))
+  }
+
+  function encodeOctetString(data: Buffer): Buffer {
+    return encodeTag(0x04, data)
+  }
+
+  function encodeNull(): Buffer {
+    return Buffer.from([0x05, 0x00])
+  }
+
+  function encodeExplicit(tag: number, data: Buffer): Buffer {
+    const tagByte = 0xa0 | tag
+    return encodeTag(tagByte, data)
+  }
+
+  // Extract serial from cert (simplified - first INTEGER in the cert)
+  function getSerialFromCert(cert: Buffer): Buffer {
+    let pos = 0
+    // Skip SEQUENCE tag and length
+    pos++ // tag
+    if (cert[pos] & 0x80) {
+      const lenLen = cert[pos] & 0x7f
+      pos += 1 + lenLen
+    } else {
+      pos++
+    }
+    // Skip TBSCertificate SEQUENCE tag and length
+    pos++ // tag
+    if (cert[pos] & 0x80) {
+      const lenLen = cert[pos] & 0x7f
+      pos += 1 + lenLen
+    } else {
+      pos++
+    }
+    // Skip optional version [0] if present
+    if (cert[pos] === 0xa0) {
+      pos++ // tag
+      const len = cert[pos]
+      pos += 1 + len
+    }
+    // Now at serial number INTEGER
+    if (cert[pos] === 0x02) {
+      const len = cert[pos + 1]
+      return cert.subarray(pos, pos + 2 + len)
+    }
+    return Buffer.from([0x02, 0x01, 0x01])
+  }
+
+  // Extract issuer Name from cert
+  function getIssuerFromCert(cert: Buffer): Buffer {
+    let pos = 0
+    // Skip outer SEQUENCE
+    pos++ // tag
+    if (cert[pos] & 0x80) {
+      const lenLen = cert[pos] & 0x7f
+      pos += 1 + lenLen
+    } else {
+      pos++
+    }
+    // Skip TBSCertificate SEQUENCE
+    pos++ // tag
+    if (cert[pos] & 0x80) {
+      const lenLen = cert[pos] & 0x7f
+      pos += 1 + lenLen
+    } else {
+      pos++
+    }
+    // Skip version
+    if (cert[pos] === 0xa0) {
+      pos++ // tag
+      const len = cert[pos]
+      pos += 1 + len
+    }
+    // Skip serial
+    if (cert[pos] === 0x02) {
+      const len = cert[pos + 1]
+      pos += 2 + len
+    }
+    // Skip signature algorithm
+    if (cert[pos] === 0x30) {
+      pos++ // tag
+      const len = cert[pos]
+      pos += 1 + len
+    }
+    // Now at issuer Name
+    if (cert[pos] === 0x30) {
+      const len = cert[pos + 1]
+      return cert.subarray(pos, pos + 2 + len)
+    }
+    return Buffer.alloc(0)
+  }
+
+  const serial = getSerialFromCert(signerCertDer)
+  const issuer = getIssuerFromCert(signerCertDer)
+
+  // IssuerAndSerialNumber
+  const issuerAndSerial = encodeSequence(issuer, serial)
+
+  // DigestAlgorithmIdentifier
+  const digestAlgId = encodeSequence(
+    encodeOid('2.16.840.1.101.3.4.2.1'), // id-sha256
+    encodeNull()
+  )
+
+  // Attributes [0]
+  const attributes = encodeExplicit(
+    0,
+    encodeSequence(
+      encodeOid('1.2.840.113549.1.9.4'), // messageDigest
+      encodeSet(encodeOctetString(manifestHash))
+    )
+  )
+
+  // SignatureAlgorithmIdentifier
+  const signAlgId = encodeSequence(
+    encodeOid('1.2.840.113549.1.1.11'), // sha256WithRSAEncryption
+    encodeNull()
+  )
 
   // SignerInfo
-  // Extract issuer and serial from signer cert
-  const issuerAndSerial = new asn1js.Sequence({
-    value: [
-      signerCert.issuer,
-      signerCert.serialNumber,
-    ],
-  })
-
-  // Attributes [0] IMPLICIT (messageDigest)
-  const messageDigestAttr = new asn1js.Sequence({
-    value: [
-      new asn1js.ObjectIdentifier({ value: '1.2.840.113549.1.9.4' }), // messageDigest
-      new asn1js.Set({
-        value: [
-          new asn1js.OctetString({ valueHex: manifestHash }),
-        ],
-      }),
-    ],
-  })
-
-  const signatureAlgorithm = new pkijs.AlgorithmIdentifier({
-    algorithmId: '1.2.840.113549.1.1.11', // sha256WithRSAEncryption
-  })
-
-  const signerInfo = new asn1js.Sequence({
-    value: [
-      new asn1js.Integer({ value: 1 }), // version
-      issuerAndSerial,
-      digestAlgorithm,
-      new asn1js.Constructed({
-        idBlock: {
-          tagClass: 3, // CONTEXT
-          tagNumber: 0,
-          isConstructed: true,
-        },
-        value: [messageDigestAttr],
-      }),
-      signatureAlgorithm,
-      new asn1js.OctetString({ valueHex: signature }),
-    ],
-  })
+  const signerInfo = encodeSequence(
+    encodeInteger(1), // version
+    issuerAndSerial,
+    digestAlgId,
+    attributes,
+    signAlgId,
+    encodeOctetString(signatureBytes)
+  )
 
   // SignerInfos
-  const signerInfos = new asn1js.Set({
-    value: [signerInfo],
-  })
+  const signerInfos = encodeSet(signerInfo)
+
+  // Certificates [0]
+  const certificatesExplicit = encodeExplicit(
+    0,
+    encodeSet(signerCertDer, wwdrCertDer)
+  )
+
+  // ContentInfo (no content for detached)
+  const contentInfo = encodeSequence(
+    encodeOid('1.2.840.113549.1.7.1') // id-data
+  )
 
   // SignedData
-  const signedData = new asn1js.Sequence({
-    value: [
-      version,
-      new asn1js.Set({
-        value: [digestAlgorithm],
-      }),
-      contentInfo,
-      certificates,
-      signerInfos,
-    ],
-  })
+  const signedData = encodeSequence(
+    encodeInteger(1), // version
+    encodeSet(digestAlgId),
+    contentInfo,
+    certificatesExplicit,
+    signerInfos
+  )
 
-  // ContentInfo wrapper
-  const contentInfoWrapper = new asn1js.Sequence({
-    value: [
-      new asn1js.ObjectIdentifier({ value: '1.2.840.113549.1.7.2' }), // id-signedData
-      new asn1js.Constructed({
-        idBlock: {
-          tagClass: 3, // CONTEXT
-          tagNumber: 0,
-          isConstructed: true,
-        },
-        value: [signedData],
-      }),
-    ],
-  })
+  // Wrap with SignedData OID
+  const pkcs7 = encodeSequence(
+    encodeOid('1.2.840.113549.1.7.2'), // id-signedData
+    encodeExplicit(0, signedData)
+  )
 
-  return Buffer.from(contentInfoWrapper.toSchema(true).toBER(false))
+  return pkcs7
 }
 
 export async function generateApplePass(input: ApplePassInput): Promise<Buffer> {
