@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Last Mile Loyalty — Turn every customer into a regular",
-  description: "Digital loyalty programme with Apple & Google Wallet integration. Built by enterprise loyalty experts for independent businesses. Free to start, set up in 5 minutes.",
+  title: "Last Mile Loyalty — Big brand loyalty, neighbourhood scale",
+  description:
+    "Digital loyalty programme with Apple & Google Wallet integration. Built by enterprise loyalty experts for independent businesses. Free to start, set up in 5 minutes.",
 };
 
 export default function RootLayout({
