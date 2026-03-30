@@ -77,39 +77,22 @@ export default function PricingPage() {
     {
       id: 'starter',
       name: 'Starter',
-      description: 'Perfect for small cafes',
-      monthlyPrice: 29,
-      annualPrice: 290,
-      memberCap: '200',
+      description: 'Perfect for small businesses',
+      monthlyPrice: 39,
+      annualPrice: 390,
+      memberCap: '300',
       features: [
-        'Up to 200 active members',
+        'Up to 300 active members',
         'Everything in Free',
         'Simple offer types',
         'Push notifications',
         'Birthday reward automation',
+        '150 SMS credits/mo',
+        'Basic segmentation',
       ],
       cta: 'Get Started',
       highlight: false,
       badge: null,
-      note: null,
-    },
-    {
-      id: 'growth',
-      name: 'Growth',
-      description: 'For growing businesses',
-      monthlyPrice: 49,
-      annualPrice: 490,
-      memberCap: '500',
-      features: [
-        'Up to 500 active members',
-        'Everything in Starter',
-        'Personalised recommendations',
-        'Lapsed customer automation',
-        'Full visit & spend analytics',
-      ],
-      cta: 'Get Started',
-      highlight: true,
-      badge: 'Most Popular',
       note: null,
     },
     {
@@ -118,19 +101,21 @@ export default function PricingPage() {
       description: 'For serious loyalty programmes',
       monthlyPrice: 99,
       annualPrice: 990,
-      memberCap: '10,000',
+      memberCap: '1,000',
       features: [
-        'Up to 10,000 active members',
-        'Everything in Growth',
-        'Advanced offer types',
-        'SMS credits (1/active member)',
-        'Referral programme',
+        'Up to 1,000 active members',
+        'Everything in Starter',
+        'Google reviews integration',
+        'AI offer triggers',
+        'Personalisation',
+        '500 SMS credits/mo',
+        'Full visit & spend analytics',
         'Multi-location management',
       ],
       cta: 'Get Started',
-      highlight: false,
-      badge: null,
-      note: 'Automatic overage billing',
+      highlight: true,
+      badge: 'Most Popular',
+      note: null,
     },
     {
       id: 'enterprise',
@@ -138,19 +123,20 @@ export default function PricingPage() {
       description: 'Custom solutions at scale',
       monthlyPrice: 299,
       annualPrice: null,
-      memberCap: '5,000+',
+      memberCap: '10,000+',
       features: [
-        'Custom member limits',
+        'First 10,000 active members',
         'Everything in Pro',
-        'Custom branding / white label',
+        'Unlimited SMS credits',
         'Custom SMS sender ID',
         'API access & Zapier/CRM',
-        'Dedicated account manager',
+        'Referral programme',
+        '+$199/mo per additional 10k band',
       ],
       cta: 'Contact Us',
       highlight: false,
       badge: null,
-      note: null,
+      note: 'Volume discounts built in',
     },
   ];
 
@@ -184,7 +170,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {plans.map((plan) => {
             const price = plan.id === 'enterprise'
               ? plan.monthlyPrice
@@ -276,38 +262,39 @@ export default function PricingPage() {
                   <th className="text-left py-3 px-4 font-semibold text-slate-300">Feature</th>
                   <th className="text-center py-3 px-2 font-semibold text-slate-300">Free</th>
                   <th className="text-center py-3 px-2 font-semibold text-slate-300">Starter</th>
-                  <th className="text-center py-3 px-2 font-semibold text-slate-300">Growth</th>
                   <th className="text-center py-3 px-2 font-semibold text-slate-300">Pro</th>
                   <th className="text-center py-3 px-2 font-semibold text-slate-300">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { feature: 'Digital stamp card', tiers: [true, true, true, true, true] },
-                  { feature: 'SMS enrolment (inbound)', tiers: [true, true, true, true, true] },
-                  { feature: 'Basic dashboard (visits, redemptions)', tiers: [true, true, true, true, true] },
-                  { feature: 'Simple offer types (stamp card, visit reward)', tiers: [false, true, true, true, true] },
-                  { feature: 'Push notifications', tiers: [false, true, true, true, true] },
-                  { feature: 'Birthday reward automation', tiers: [false, true, true, true, true] },
-                  { feature: 'Personalised recommendations', tiers: [false, false, true, true, true] },
-                  { feature: 'Lapsed customer automation', tiers: [false, false, true, true, true] },
-                  { feature: 'Full visit & spend analytics', tiers: [false, false, true, true, true] },
-                  { feature: 'Advanced offer types (tiered rewards, challenges, gamification)', tiers: [false, false, false, true, true] },
-                  { feature: 'SMS credits (1 per active member/month)', tiers: [false, false, false, true, true] },
-                  { feature: 'Referral programme', tiers: [false, false, false, true, true] },
-                  { feature: 'Multi-location management', tiers: [false, false, false, true, true] },
-                  { feature: 'Custom branding / white label', tiers: [false, false, false, false, true] },
-                  { feature: 'Custom SMS sender ID', tiers: [false, false, false, false, true] },
-                  { feature: 'API access', tiers: [false, false, false, false, true] },
-                  { feature: 'Zapier / CRM integrations', tiers: [false, false, false, false, true] },
-                ].map((row, i) => (
+                  { feature: 'Digital stamp card', tiers: [true, true, true, true] },
+                  { feature: 'SMS enrolment (inbound)', tiers: [true, true, true, true] },
+                  { feature: 'Basic dashboard', tiers: [true, true, true, true] },
+                  { feature: 'Simple offer types', tiers: [false, true, true, true] },
+                  { feature: 'Push notifications', tiers: [false, true, true, true] },
+                  { feature: 'Birthday reward automation', tiers: [false, true, true, true] },
+                  { feature: 'Basic segmentation', tiers: [false, true, true, true] },
+                  { feature: 'SMS credits', tiers: [false, '150/mo', '500/mo', 'Unlimited'] },
+                  { feature: 'Google reviews integration', tiers: [false, false, true, true] },
+                  { feature: 'AI offer triggers', tiers: [false, false, true, true] },
+                  { feature: 'Personalisation', tiers: [false, false, true, true] },
+                  { feature: 'Full visit & spend analytics', tiers: [false, false, true, true] },
+                  { feature: 'Multi-location management', tiers: [false, false, true, true] },
+                  { feature: 'Referral programme', tiers: [false, false, false, true] },
+                  { feature: 'Custom SMS sender ID', tiers: [false, false, false, true] },
+                  { feature: 'API access', tiers: [false, false, false, true] },
+                  { feature: 'Zapier / CRM integrations', tiers: [false, false, false, true] },
+                                ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-700/50">
                     <td className="py-3 px-4 text-slate-300">{row.feature}</td>
                     {row.tiers.map((included, j) => (
                       <td key={j} className="text-center py-3 px-2">
-                        {included
+                        {included === true
                           ? <span className="text-teal-400">&#10003;</span>
-                          : <span className="text-slate-600">&mdash;</span>
+                          : included === false
+                            ? <span className="text-slate-600">&mdash;</span>
+                            : <span className="text-teal-400 text-xs">{included}</span>
                         }
                       </td>
                     ))}
