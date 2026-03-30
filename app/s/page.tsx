@@ -39,7 +39,7 @@ function StaffStampContent() {
 
     async function loadData() {
       const [bizRes, custRes] = await Promise.all([
-        getSupabase().from("businesses").select("*").eq("slug", slug).single(),
+        getSupabase().from("businesses_public").select("*").eq("slug", slug).single(),
         getSupabase().from("customers").select("*").eq("id", customerId).single(),
       ]);
 
