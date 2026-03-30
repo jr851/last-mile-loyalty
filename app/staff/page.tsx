@@ -16,7 +16,7 @@ function StaffContent() {
   const [error, setError] = useState("");
 
   // PIN gate — set to true to re-enable for production
-  const PIN_GATE_ENABLED = false;
+  const PIN_GATE_ENABLED = true;
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState("");
   const [unlocked, setUnlocked] = useState(!PIN_GATE_ENABLED);

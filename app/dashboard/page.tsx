@@ -12,6 +12,7 @@ interface Business {
   reward_stamps_needed: number;
   reward_description: string;
   stamp_earn_description: string;
+  staff_pin: string;
 }
 
 interface DashboardStats {
@@ -27,6 +28,11 @@ export default function DashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [stats, setStats] = useState<DashboardStats>({ totalCustomers: 0, totalStamps: 0, totalRedemptions: 0 });
   const [copied, setCopied] = useState('');
+  const [showPin, setShowPin] = useState(false);
+  const [changingPin, setChangingPin] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinSuccess, setPinSuccess] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -90,6 +96,37 @@ export default function DashboardPage() {
       await supabase.auth.signOut();
     }
     router.push('/auth/login');
+  }
+
+  async function handleSavePin() {
+    if (!newPin || newPin.length !== 4 || !/^\d+$/.test(newPin)) {
+      setPinError('PIN must be exactly 4 digits');
+      return;
+    }
+
+    try {
+      const { getClientSupabase } = await import('@/lib/client-supabase');
+      const supabase = getClientSupabase();
+
+      const { error } = await supabase
+        .from('businesses')
+        .update({ staff_pin: newPin })
+        .eq('id', business?.id);
+
+      if (error) {
+        setPinError('Failed to update PIN. Please try again.');
+        return;
+      }
+
+      setBusiness({ ...business!, staff_pin: newPin });
+      setNewPin('');
+      setChangingPin(false);
+      setPinError('');
+      setPinSuccess(true);
+      setTimeout(() => setPinSuccess(false), 2000);
+    } catch (error) {
+      setPinError('Failed to update PIN. Please try again.');
+    }
   }
 
   function copyToClipboard(text: string, label: string) {
@@ -223,8 +260,82 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Settings - Staff PIN */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+          <h2 className="font-semibold text-gray-900">Settings</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-xs">Staff PIN</p>
+                <p className="text-gray-900 font-mono tracking-widest">
+                  {showPin ? business.staff_pin : '••••'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPin(!showPin)}
+                className="text-xs px-2 py-1 text-teal-600 hover:text-teal-700 font-medium"
+              >
+                {showPin ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
+            {changingPin ? (
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="0000"
+                  value={newPin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                    setNewPin(val);
+                    setPinError('');
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+                />
+                {pinError && (
+                  <p className="text-xs text-red-600">{pinError}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSavePin}
+                    className="flex-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setChangingPin(false);
+                      setNewPin('');
+                      setPinError('');
+                    }}
+                    className="flex-1 px-3 py-1.5 border border-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setChangingPin(true);
+                  setNewPin('');
+                  setPinError('');
+                }}
+                className="text-xs px-3 py-1.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Change PIN
+              </button>
+            )}
+            {pinSuccess && (
+              <p className="text-xs text-green-600">PIN updated successfully</p>
+            )}
+          </div>
+        </div>
+
         {/* Navigation */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Link href="/setup" className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:border-gray-300 transition-colors">
             <div className="text-xl mb-1">⚙️</div>
             <p className="text-sm font-medium text-gray-900">Edit programme</p>
@@ -232,6 +343,10 @@ export default function DashboardPage() {
           <Link href={`/s/?b=${business.slug}`} className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:border-gray-300 transition-colors">
             <div className="text-xl mb-1">⭐</div>
             <p className="text-sm font-medium text-gray-900">Stamp customers</p>
+          </Link>
+          <Link href="/contact" className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:border-gray-300 transition-colors">
+            <div className="text-xl mb-1">💬</div>
+            <p className="text-sm font-medium text-gray-900">Contact support</p>
           </Link>
         </div>
       </div>

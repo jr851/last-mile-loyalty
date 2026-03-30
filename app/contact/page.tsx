@@ -1,20 +1,49 @@
 'use client';
 export const runtime = 'edge';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Footer from '../components/Footer';
 
 export default function ContactPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  async function checkAuth() {
+    try {
+      const { getClientSupabase } = await import('@/lib/client-supabase');
+      const supabase = getClientSupabase();
+
+      if (!supabase) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/auth/login');
+        return;
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      router.push('/auth/login');
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setFormLoading(true);
     setError('');
 
     try {
@@ -26,99 +55,95 @@ export default function ContactPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to send message.');
-        setLoading(false);
+        setFormLoading(false);
         return;
       }
       setSent(true);
     } catch {
       setError('Failed to send message. Please try again.');
     }
-    setLoading(false);
+    setFormLoading(false);
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-gray-400 text-2xl animate-pulse">Loading...</div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col">
-      {/* Nav */}
-      <nav className="bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center font-bold">L</div>
-            <span className="font-bold text-lg">Last Mile Loyalty</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with back link */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <Link href="/dashboard" className="text-sm text-teal-600 hover:text-teal-700 font-medium">
+            Back to dashboard
           </Link>
-          <div className="hidden md:flex gap-4">
-            <Link href="/pricing" className="px-4 py-2 rounded hover:bg-slate-700">Pricing</Link>
-            <Link href="/auth/login" className="px-4 py-2 rounded hover:bg-slate-700">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-teal-600 rounded hover:bg-teal-700">Get Started</Link>
-          </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="flex-1 px-4 py-16">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-2">Get in touch</h1>
-          <p className="text-slate-400 text-center mb-10">
-            Have a question or want to learn more? Drop us a message and we'll get back to you within one business day.
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-xl border border-gray-100 p-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Contact us</h1>
+          <p className="text-gray-600 mb-8">
+            Have a question or feedback? Drop us a message and we'll get back to you within one business day.
           </p>
 
           {sent ? (
-            <div className="bg-teal-900/30 border border-teal-700/50 rounded-2xl p-8 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
               <div className="text-4xl mb-3">✉️</div>
-              <h2 className="text-xl font-bold text-white mb-2">Message sent!</h2>
-              <p className="text-slate-400">Thanks for reaching out. We'll be in touch shortly.</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Message sent!</h2>
+              <p className="text-gray-600">Thanks for reaching out. We'll be in touch shortly.</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
                   placeholder="Your name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
                   placeholder="you@example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Message</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
-                  rows={5}
-                  className="w-full px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent resize-none"
                   placeholder="How can we help?"
                 />
               </div>
               {error && (
-                <div className="bg-red-900/30 text-red-400 text-sm px-3 py-2 rounded-lg border border-red-800/50">
+                <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg border border-red-200">
                   {error}
                 </div>
               )}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={formLoading}
                 className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors"
               >
-                {loading ? 'Sending...' : 'Send message'}
+                {formLoading ? 'Sending...' : 'Send message'}
               </button>
             </form>
           )}
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
