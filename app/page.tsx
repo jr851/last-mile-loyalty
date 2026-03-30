@@ -14,6 +14,7 @@ export default function HomePage() {
           </div>
           {/* Desktop nav links */}
           <div className="hidden md:flex gap-4">
+            <Link href="/pricing" className="px-4 py-2 rounded hover:bg-slate-700">Pricing</Link>
             <Link href="/auth/login" className="px-4 py-2 rounded hover:bg-slate-700">Business Sign In</Link>
             <Link href="/auth/signup" className="px-4 py-2 bg-teal-600 rounded hover:bg-teal-700">Get Started</Link>
           </div>
@@ -48,30 +49,9 @@ export default function HomePage() {
             <div className="p-6 rounded-lg bg-slate-700/50 border border-slate-600">
               <TrendingUp className="w-8 h-8 text-teal-400 mb-4" />
               <h3 className="font-bold text-lg mb-2">Increase Visits</h3>
-              <p className="text-slate-300">Smart notifications bring customers back. Average 3.2x more repeat visits.</p>
+              <p className="text-slate-300">Smart notifications bring customers back.</p>
             </div>
             <div className="p-6 rounded-lg bg-slate-700/50 border border-slate-600">
               <Lock className="w-8 h-8 text-teal-400 mb-4" />
               <h3 className="font-bold text-lg mb-2">Enterprise Standards</h3>
               <p className="text-slate-300">Built with the same standards as leading retail loyalty systems.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to get started?</h2>
-          <p className="text-lg text-slate-300 mb-8">Join the businesses already using Last Mile Loyalty to keep customers coming back.</p>
-          <Link href="/auth/signup" className="inline-block px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold text-lg">Trial Free Tier</Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-700 py-8 px-4 text-center text-slate-400">
-        <p>&copy; 2026 Last Mile Loyalty. Built for independent businesses.</p>
-      </footer>
-    </div>
-  );
-}
