@@ -10,7 +10,7 @@ type Step = "phone" | "otp" | "submitting";
 const COUNTRY_CODES = [
   // Primary markets at top
   { code: "+61", flag: "🇦🇺", name: "Australia", placeholder: "412 345 678" },
-  { code: "+64", flag: "🇳🇿", name: "New Zealand", placeholder: "21 123 4567" },
+  { code: "+64", flag: "🇳🇿", name: "New Zealand", placholder: "21 123 4567" },
   { code: "+1", flag: "🇺🇸", name: "United States", placeholder: "555 123 4567" },
   { code: "+44", flag: "🇬🇧", name: "United Kingdom", placeholder: "7911 123456" },
   { code: "+1", flag: "🇨🇦", name: "Canada", placeholder: "555 123 4567" },
@@ -85,7 +85,7 @@ function JoinContent() {
 
     async function loadBusiness() {
       const { data } = await getSupabase()
-        .from("businesses")
+        .from("businesses_public")
         .select("*")
         .eq("slug", slug)
         .single();
