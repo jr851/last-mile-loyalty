@@ -1,14 +1,131 @@
-"use client";
-
+'use client';
+export const runtime = 'edge';
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { supabase } from "@/lib/supabase";
 import type { Business, Customer } from "@/lib/types";
 
+import { getSupabase } from '@/lib/supabase';
 function generateRedemptionCode(): string {
   // 3-digit numeric code (100-999) — easy to read aloud, no ambiguous characters
   return String(Math.floor(Math.random() * 900) + 100);
+}
+
+function WalletButtons({ customerId, slug }: { customerId: string; slug: string }) {
+  const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [walletError, setWalletError] = useState("");
+  const [loadingWallet, setLoadingWallet] = useState<"apple" | "google" | null>(null);
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    setIsIOS(/iPhone|iPad|iPod/.test(ua));
+    setIsAndroid(/Android/.test(ua));
+  }, []);
+
+  // On desktop or unknown, show both
+  const showApple = isIOS || (!isIOS && !isAndroid);
+  const showGoogle = isAndroid || (!isIOS && !isAndroid);
+
+  async function handleAppleWallet() {
+    setWalletError("");
+    setLoadingWallet("apple");
+
+    const passUrl = `/api/wallet/apple-pass?customerId=${customerId}&b=${slug}`;
+
+    if (isIOS) {
+      // On iOS, Safari must navigate directly to the .pkpass URL
+      // so it can intercept the content type and show the native
+      // "Add to Apple Wallet" prompt. fetch() bypasses this.
+      window.location.href = passUrl;
+      // Give it a moment then reset loading state
+      setTimeout(() => setLoadingWallet(null), 3000);
+      return;
+    }
+
+    // On desktop: use fetch so we can show errors gracefully
+    try {
+      const res = await fetch(passUrl);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Could not generate pass" }));
+        setWalletError(data.error || "Could not generate Apple Wallet pass. Try saving this page to your home screen instead.");
+        setLoadingWallet(null);
+        return;
+      }
+      // Download the .pkpass file
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${slug}-loyalty.pkpass`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      setWalletError("Could not connect. Please try again.");
+    }
+    setLoadingWallet(null);
+  }
+
+  async function handleGoogleWallet() {
+    setWalletError("");
+    setLoadingWallet("google");
+    try {
+      const res = await fetch(`/api/wallet/google-pass?customerId=${customerId}&b=${slug}`, {
+        redirect: "manual",
+      });
+      // The Google endpoint returns a redirect to pay.google.com
+      if (res.type === "opaqueredirect" || res.status === 302 || res.status === 307) {
+        // Redirect happened, open in new window
+        window.location.href = `/api/wallet/google-pass?customerId=${customerId}&b=${slug}`;
+        setLoadingWallet(null);
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Could not generate pass" }));
+        setWalletError(data.error || "Could not generate Google Wallet pass. Try saving this page to your home screen instead.");
+        setLoadingWallet(null);
+        return;
+      }
+      // If we got a successful non-redirect response, follow it
+      window.location.href = `/api/wallet/google-pass?customerId=${customerId}&b=${slug}`;
+    } catch {
+      // Network error likely means redirect happened (opaque response) - follow it
+      window.location.href = `/api/wallet/google-pass?customerId=${customerId}&b=${slug}`;
+    }
+    setLoadingWallet(null);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-3">
+        {showApple && (
+          <button
+            onClick={handleAppleWallet}
+            disabled={loadingWallet !== null}
+            className="flex-1 bg-black hover:bg-gray-800 disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-center text-sm transition-colors"
+          >
+            {loadingWallet === "apple" ? "Loading..." : "Add to Apple Wallet"}
+          </button>
+        )}
+        {showGoogle && (
+          <button
+            onClick={handleGoogleWallet}
+            disabled={loadingWallet !== null}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-center text-sm transition-colors"
+          >
+            {loadingWallet === "google" ? "Loading..." : "Add to Google Wallet"}
+          </button>
+        )}
+      </div>
+      {walletError && (
+        <div className="bg-amber-50 text-amber-800 text-xs px-3 py-2 rounded-lg border border-amber-200">
+          {walletError}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function CardContent() {
@@ -24,19 +141,33 @@ function CardContent() {
   const [redemptionCode, setRedemptionCode] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [tipDismissed, setTipDismissed] = useState(false);
+  const [showClaimConfirm, setShowClaimConfirm] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!slug) return;
 
-    const customerId = localStorage.getItem(`loyalty_${slug}_cid`);
+    // Accept customer ID from URL param (e.g. from SMS link) or localStorage
+    const urlCustomerId = searchParams.get("c");
+    let customerId = localStorage.getItem(`loyalty_${slug}_cid`);
+
+    if (urlCustomerId && !customerId) {
+      // Came from SMS link - store the customer ID for future visits
+      localStorage.setItem(`loyalty_${slug}_cid`, urlCustomerId);
+      customerId = urlCustomerId;
+    } else if (urlCustomerId && customerId && urlCustomerId !== customerId) {
+      // URL has a different customer ID - trust the URL (newer signup)
+      localStorage.setItem(`loyalty_${slug}_cid`, urlCustomerId);
+      customerId = urlCustomerId;
+    }
+
     if (!customerId) {
       router.replace(`/join/?b=${slug}`);
       return;
     }
 
     const [bizRes, custRes] = await Promise.all([
-      supabase.from("businesses").select("*").eq("slug", slug).single(),
-      supabase.from("customers").select("*").eq("id", customerId).single(),
+      getSupabase().from("businesses").select("*").eq("slug", slug).single(),
+      getSupabase().from("customers").select("*").eq("id", customerId).single(),
     ]);
 
     if (!bizRes.data || !custRes.data) {
@@ -78,24 +209,24 @@ function CardContent() {
     setClaiming(true);
     setError("");
 
-    const code = generateRedemptionCode();
+    try {
+      const res = await fetch("/api/loyalty/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: customer.id, businessId: business.id }),
+      });
+      const data = await res.json();
 
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    const { error: insertError } = await supabase.from("redemptions").insert({
-      customer_id: customer.id,
-      business_id: business.id,
-      code,
-      expires_at: expiresAt,
-      confirmed_at: null,
-    });
+      if (!res.ok) {
+        setError(data.error || "Couldn't generate your code. Please try again.");
+        setClaiming(false);
+        return;
+      }
 
-    if (insertError) {
+      setRedemptionCode(data.code);
+    } catch {
       setError("Couldn't generate your code. Please try again.");
-      setClaiming(false);
-      return;
     }
-
-    setRedemptionCode(code);
     setClaiming(false);
   }
 
@@ -122,7 +253,7 @@ function CardContent() {
   const cardUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/s/?c=${customer.id}&b=${slug}`
-      : `https://loyalty-app-cld.pages.dev/s/?c=${customer.id}&b=${slug}`;
+      : `https://lastmileloyalty.com/s/?c=${customer.id}&b=${slug}`;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: business.brand_color + "12" }}>
@@ -224,7 +355,10 @@ function CardContent() {
           </div>
 
           <p className="text-xs text-gray-400 mt-3">
-            Earn: <span className="font-medium text-gray-600">{business.reward_description}</span>
+            1 stamp per: <span className="font-medium text-gray-600">{business.stamp_earn_description}</span>
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Reward: <span className="font-medium text-gray-600">{business.reward_description}</span>
           </p>
         </div>
 
@@ -245,14 +379,35 @@ function CardContent() {
             {error && (
               <p className="text-red-600 text-sm mb-3">{error}</p>
             )}
-            <button
-              onClick={handleClaimReward}
-              disabled={claiming}
-              className="w-full text-white font-semibold py-3 rounded-xl transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: business.brand_color }}
-            >
-              {claiming ? "Generating code…" : "Claim reward →"}
-            </button>
+            {!showClaimConfirm ? (
+              <button
+                onClick={() => setShowClaimConfirm(true)}
+                className="w-full text-white font-semibold py-3 rounded-xl transition-opacity"
+                style={{ backgroundColor: business.brand_color }}
+              >
+                Claim reward →
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500 mb-3">
+                  Ready to use your reward now? This will generate a code to show the barista.
+                </p>
+                <button
+                  onClick={handleClaimReward}
+                  disabled={claiming}
+                  className="w-full text-white font-semibold py-3 rounded-xl transition-opacity disabled:opacity-50"
+                  style={{ backgroundColor: business.brand_color }}
+                >
+                  {claiming ? "Generating code..." : "Yes, generate my code"}
+                </button>
+                <button
+                  onClick={() => setShowClaimConfirm(false)}
+                  className="w-full text-gray-500 font-medium py-2 text-sm"
+                >
+                  Not yet, save for later
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -293,34 +448,17 @@ function CardContent() {
           </div>
         </div>
 
-        {/* Save to home screen tip */}
-        {!tipDismissed && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <p className="text-blue-900 font-semibold text-sm">📌 Save your card for next time</p>
-              <button
-                onClick={dismissTip}
-                className="text-blue-400 hover:text-blue-600 text-lg leading-none flex-shrink-0 -mt-0.5"
-                aria-label="Dismiss"
-              >
-                ×
-              </button>
-            </div>
-            <p className="text-blue-700 text-xs leading-relaxed mb-3">
-              Add this page to your phone&apos;s home screen — one tap opens your card instantly on every visit.
-            </p>
-            <div className="flex gap-3">
-              <div className="flex-1 bg-white rounded-xl border border-blue-200 px-3 py-2 text-center">
-                <p className="text-xs font-semibold text-blue-900 mb-0.5">iPhone</p>
-                <p className="text-xs text-blue-600">Tap <span className="font-medium">Share</span> → <span className="font-medium">Add to Home Screen</span></p>
-              </div>
-              <div className="flex-1 bg-white rounded-xl border border-blue-200 px-3 py-2 text-center">
-                <p className="text-xs font-semibold text-blue-900 mb-0.5">Android</p>
-                <p className="text-xs text-blue-600">Tap <span className="font-medium">Menu ⋮</span> → <span className="font-medium">Add to Home Screen</span></p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Wallet buttons */}
+        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+          <h3 className="font-medium text-gray-900 mb-1 text-sm">Save your card</h3>
+          <p className="text-gray-400 text-xs mb-4">
+            Add to your phone wallet for easy access on every visit
+          </p>
+          <WalletButtons customerId={customer.id} slug={slug} />
+          <p className="text-gray-400 text-xs text-center mt-3">
+            Or save this page to your home screen: tap Share → Add to Home Screen
+          </p>
+        </div>
       </div>
     </div>
   );

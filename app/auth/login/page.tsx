@@ -64,7 +64,7 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                placeholder="you@yourcafe.com"
+                placeholder="you@yourbusiness.com"
               />
             </div>
 
@@ -81,6 +81,12 @@ export default function LoginPage() {
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                 placeholder="••••••••"
               />
+            </div>
+
+            <div className="text-right">
+              <Link href="/auth/forgot-password" className="text-xs text-amber-600 hover:underline">
+                Forgot your password?
+              </Link>
             </div>
 
             {error && (
@@ -103,12 +109,6 @@ export default function LoginPage() {
           New here?{" "}
           <Link href="/auth/signup" className="text-amber-600 font-medium hover:underline">
             Create your loyalty programme
-          </Link>
-        </p>
-
-        <p className="text-center mt-6">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-            ← Back to home
           </Link>
         </p>
       </div>

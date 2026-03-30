@@ -1,12 +1,14 @@
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import type { Business } from "./types";
 
 export async function signUp(email: string, password: string) {
+  const supabase = getSupabase();
   const { data, error } = await supabase.auth.signUp({ email, password });
   return { data, error };
 }
 
 export async function signIn(email: string, password: string) {
+  const supabase = getSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -15,11 +17,13 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
+  const supabase = getSupabase();
   const { error } = await supabase.auth.signOut();
   return { error };
 }
 
 export async function getSession() {
+  const supabase = getSupabase();
   const { data, error } = await supabase.auth.getSession();
   return { session: data.session, error };
 }
@@ -27,6 +31,7 @@ export async function getSession() {
 export async function getBusinessForOwner(
   ownerId: string
 ): Promise<Business | null> {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("businesses")
     .select("*")
@@ -37,6 +42,20 @@ export async function getBusinessForOwner(
   return data as Business;
 }
 
+export async function resetPassword(email: string) {
+  const supabase = getSupabase();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/reset-password`,
+  });
+  return { error };
+}
+
+export async function updatePassword(newPassword: string) {
+  const supabase = getSupabase();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return { error };
+}
+
 export async function createBusiness(
   ownerId: string,
   details: {
@@ -45,9 +64,11 @@ export async function createBusiness(
     brand_color: string;
     reward_stamps_needed: number;
     reward_description: string;
+    stamp_earn_description: string;
     staff_pin: string;
   }
 ): Promise<{ business: Business | null; error: string | null }> {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("businesses")
     .insert({
@@ -65,6 +86,7 @@ export async function updateBusiness(
   businessId: string,
   updates: Partial<Business>
 ): Promise<{ error: string | null }> {
+  const supabase = getSupabase();
   const { error } = await supabase
     .from("businesses")
     .update(updates)

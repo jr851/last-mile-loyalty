@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" fill="none">
+  <!-- Abstract loyalty loop mark — a continuous path that returns to its origin -->
+  <g transform="translate(4, 4)">
+    <!-- Outer loop path representing the customer return journey -->
+    <path d="M24 24 C24 10.7 34.7 0 48 0 L48 0 C48 0 48 0 48 0" stroke="none" fill="none"/>
+    <!-- Simplified: two overlapping rounded paths forming a return loop -->
+    <rect x="0" y="6" width="36" height="36" rx="18" fill="none" stroke="#0f766e" stroke-width="4"/>
+    <!-- Arrow head on the loop suggesting return/repeat -->
+    <path d="M18 6 L24 0 L24 12 Z" fill="#0f766e"/>
+    <!-- Inner dot — the destination/reward -->
+    <circle cx="18" cy="24" r="6" fill="#0d9488"/>
+  </g>
+  <!-- Brand name -->
+  <text x="56" y="24" font-family="'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#111827" letter-spacing="-0.5">Last Mile</text>
+  <text x="56" y="46" font-family="'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#0f766e" letter-spacing="-0.5">Loyalty</text>
+</svg>

@@ -1,28 +1,37 @@
 /**
  * Google Wallet pass generation for Last Mile Loyalty.
+ * Edge-runtime compatible — uses Web Crypto API for JWT signing.
  *
  * Prerequisites (one-time setup):
  *  1. Google Cloud project created at console.cloud.google.com
  *  2. Google Wallet API enabled
  *  3. Service account created with Wallet Object Issuer role
- *  4. JSON key file downloaded to certs/google-wallet-key.json
+ *  4. JSON key file downloaded, base64-encoded, stored in env var
  *  5. Issuer ID obtained from pay.google.com/business/console
  *
  * Env vars required:
  *  GOOGLE_WALLET_ISSUER_ID=3388000000XXXXXXXXX
  *  GOOGLE_WALLET_CLASS_SUFFIX=lastmileloyalty_stamps  (no spaces)
+ *  GOOGLE_SERVICE_ACCOUNT_B64=<base64-encoded service account JSON>
  */
 
-import { GoogleAuth } from 'google-auth-library'
-import path from 'path'
-
 const WALLET_API_BASE = 'https://walletobjects.googleapis.com/walletobjects/v1'
+const OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
-function getAuth() {
-  return new GoogleAuth({
-    keyFile: path.join(process.cwd(), 'certs', 'google-wallet-key.json'),
-    scopes: ['https://www.googleapis.com/auth/wallet_object.issuer'],
-  })
+interface ServiceAccountCredentials {
+  client_email: string
+  private_key: string
+}
+
+function getCredentials(): ServiceAccountCredentials {
+  const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_B64
+  if (!b64) throw new Error('Missing GOOGLE_SERVICE_ACCOUNT_B64 env var')
+  const json = atob(b64)
+  const parsed = JSON.parse(json)
+  if (!parsed.client_email || !parsed.private_key) {
+    throw new Error('Service account JSON missing client_email or private_key')
+  }
+  return { client_email: parsed.client_email, private_key: parsed.private_key }
 }
 
 function classId() {
@@ -32,6 +41,97 @@ function classId() {
 function objectId(customerId: string) {
   return `${process.env.GOOGLE_WALLET_ISSUER_ID}.customer_${customerId}`
 }
+
+// ─── Web Crypto helpers ──────────────────────────────────────────────────────
+
+function base64urlEncode(data: ArrayBuffer | string): string {
+  let bytes: Uint8Array
+  if (typeof data === 'string') {
+    bytes = new TextEncoder().encode(data)
+  } else {
+    bytes = new Uint8Array(data)
+  }
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+
+/**
+ * Import a PEM-encoded RSA private key for RS256 signing.
+ */
+async function importPrivateKey(pem: string): Promise<CryptoKey> {
+  // Strip PEM headers/footers and decode base64
+  const pemContents = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\r?\n/g, '')
+    .trim()
+
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0))
+
+  return crypto.subtle.importKey(
+    'pkcs8',
+    binaryDer.buffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+}
+
+/**
+ * Sign a JWT using RS256 with the service account private key.
+ */
+async function signJwtEdge(payload: Record<string, unknown>, privateKeyPem: string): Promise<string> {
+  const header = { alg: 'RS256', typ: 'JWT' }
+  const headerB64 = base64urlEncode(JSON.stringify(header))
+  const payloadB64 = base64urlEncode(JSON.stringify(payload))
+  const signingInput = `${headerB64}.${payloadB64}`
+
+  const key = await importPrivateKey(privateKeyPem)
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    key,
+    new TextEncoder().encode(signingInput)
+  )
+
+  const sigB64 = base64urlEncode(signature)
+  return `${signingInput}.${sigB64}`
+}
+
+/**
+ * Obtain a short-lived OAuth2 access token for the Google Wallet API
+ * using a service account JWT (two-legged OAuth).
+ */
+async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
+  const now = Math.floor(Date.now() / 1000)
+  const jwtPayload = {
+    iss: credentials.client_email,
+    scope: 'https://www.googleapis.com/auth/wallet_object.issuer',
+    aud: OAUTH_TOKEN_URL,
+    iat: now,
+    exp: now + 3600,
+  }
+
+  const jwt = await signJwtEdge(jwtPayload, credentials.private_key)
+
+  const res = await fetch(OAUTH_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Failed to get access token: ${text}`)
+  }
+
+  const data = await res.json() as { access_token: string }
+  return data.access_token
+}
+
+// ─── Public API ──────────────────────────────────────────────────────────────
 
 export interface GooglePassInput {
   customerId: string
@@ -51,9 +151,8 @@ export interface GooglePassInput {
  * Only needs to be called once, but safe to call repeatedly.
  */
 export async function upsertLoyaltyClass(businessName: string, brandColor: string) {
-  const auth = getAuth()
-  const client = await auth.getClient()
-  const token = await client.getAccessToken()
+  const credentials = getCredentials()
+  const token = await getAccessToken(credentials)
 
   const classResource = {
     id: classId(),
@@ -66,20 +165,17 @@ export async function upsertLoyaltyClass(businessName: string, brandColor: strin
     },
     loyaltyPoints: {
       label: 'Stamps',
-      balance: {
-        int: 0,
-      },
+      balance: { int: 0 },
     },
     hexBackgroundColor: brandColor,
     countryCode: 'AU',
     reviewStatus: 'UNDER_REVIEW',
   }
 
-  // Try to update first, create if it doesn't exist
   const updateRes = await fetch(`${WALLET_API_BASE}/loyaltyClass/${classId()}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(classResource),
@@ -89,7 +185,7 @@ export async function upsertLoyaltyClass(businessName: string, brandColor: strin
     await fetch(`${WALLET_API_BASE}/loyaltyClass`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token.token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(classResource),
@@ -102,9 +198,8 @@ export async function upsertLoyaltyClass(businessName: string, brandColor: strin
  * Returns a "Save to Google Wallet" JWT link.
  */
 export async function generateGooglePassUrl(input: GooglePassInput): Promise<string> {
-  const auth = getAuth()
-  const client = await auth.getClient()
-  const token = await client.getAccessToken()
+  const credentials = getCredentials()
+  const token = await getAccessToken(credentials)
 
   const {
     customerId,
@@ -124,9 +219,7 @@ export async function generateGooglePassUrl(input: GooglePassInput): Promise<str
     classId: classId(),
     state: 'ACTIVE',
     loyaltyPoints: {
-      balance: {
-        int: stampCount,
-      },
+      balance: { int: stampCount },
       label: 'Stamps',
     },
     textModulesData: [
@@ -151,14 +244,7 @@ export async function generateGooglePassUrl(input: GooglePassInput): Promise<str
     },
     hexBackgroundColor: brandColor,
     ...(latitude && longitude
-      ? {
-          locations: [
-            {
-              latitude,
-              longitude,
-            },
-          ],
-        }
+      ? { locations: [{ latitude, longitude }] }
       : {}),
   }
 
@@ -166,7 +252,7 @@ export async function generateGooglePassUrl(input: GooglePassInput): Promise<str
   const updateRes = await fetch(`${WALLET_API_BASE}/loyaltyObject/${objectId(customerId)}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(objectResource),
@@ -176,7 +262,7 @@ export async function generateGooglePassUrl(input: GooglePassInput): Promise<str
     await fetch(`${WALLET_API_BASE}/loyaltyObject`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token.token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(objectResource),
@@ -184,18 +270,18 @@ export async function generateGooglePassUrl(input: GooglePassInput): Promise<str
   }
 
   // Generate JWT save link
+  const now = Math.floor(Date.now() / 1000)
   const jwtClaims = {
-    iss: (await auth.getCredentials()).client_email,
+    iss: credentials.client_email,
     aud: 'google',
     typ: 'savetowallet',
-    iat: Math.floor(Date.now() / 1000),
+    iat: now,
     payload: {
       loyaltyObjects: [{ id: objectId(customerId) }],
     },
   }
 
-  // Sign the JWT using the service account key
-  const jwt = await signJwt(jwtClaims, auth)
+  const jwt = await signJwtEdge(jwtClaims, credentials.private_key)
   return `https://pay.google.com/gp/v/save/${jwt}`
 }
 
@@ -208,9 +294,8 @@ export async function updateGooglePassStamps(
   rewardStampsNeeded: number,
   rewardDescription: string
 ) {
-  const auth = getAuth()
-  const client = await auth.getClient()
-  const token = await client.getAccessToken()
+  const credentials = getCredentials()
+  const token = await getAccessToken(credentials)
 
   const stampsRemaining = Math.max(0, rewardStampsNeeded - stampCount)
 
@@ -234,31 +319,9 @@ export async function updateGooglePassStamps(
   await fetch(`${WALLET_API_BASE}/loyaltyObject/${objectId(customerId)}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer ${token.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(patch),
   })
-}
-
-/**
- * Sign a JWT payload using the Google service account.
- */
-async function signJwt(payload: Record<string, unknown>, auth: GoogleAuth): Promise<string> {
-  const credentials = await auth.getCredentials()
-  const header = { alg: 'RS256', typ: 'JWT' }
-
-  const encode = (obj: unknown) =>
-    Buffer.from(JSON.stringify(obj)).toString('base64url')
-
-  const signingInput = `${encode(header)}.${encode(payload)}`
-
-  const crypto = await import('crypto')
-  const sign = crypto.createSign('RSA-SHA256')
-  sign.update(signingInput)
-  const signature = sign
-    .sign(credentials.private_key as string)
-    .toString('base64url')
-
-  return `${signingInput}.${signature}`
 }

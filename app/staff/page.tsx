@@ -1,10 +1,10 @@
-"use client";
-
+'use client';
+export const runtime = 'edge';
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import type { Business, Customer } from "@/lib/types";
 
+import { getSupabase } from '@/lib/supabase';
 type Tab = "stamp" | "redeem";
 
 function StaffContent() {
@@ -15,10 +15,11 @@ function StaffContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // PIN gate
+  // PIN gate — set to true to re-enable for production
+  const PIN_GATE_ENABLED = false;
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(!PIN_GATE_ENABLED);
 
   // Tab
   const [activeTab, setActiveTab] = useState<Tab>("stamp");
@@ -43,7 +44,7 @@ function StaffContent() {
       return;
     }
     async function loadBusiness() {
-      const { data } = await supabase
+      const { data } = await getSupabase()
         .from("businesses")
         .select("*")
         .eq("slug", slug)
@@ -81,7 +82,7 @@ function StaffContent() {
     setStampResult(null);
 
     const cleanPhone = phoneInput.replace(/\s/g, "");
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from("customers")
       .select("*")
       .eq("business_id", business.id)
@@ -100,27 +101,31 @@ function StaffContent() {
     setStamping(true);
     setStampResult(null);
 
-    const stampsToAdd = business.double_stamps_active ? 2 : 1;
-    const newStamps = foundCustomer.stamps + stampsToAdd;
-    const { error: updateError } = await supabase
-      .from("customers")
-      .update({ stamps: newStamps })
-      .eq("id", foundCustomer.id);
+    try {
+      const res = await fetch("/api/loyalty/stamp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: foundCustomer.id, businessId: business.id }),
+      });
+      const data = await res.json();
 
-    if (updateError) {
+      if (!res.ok) {
+        setLookupError(data.error || "Couldn't add stamp. Please try again.");
+        setStamping(false);
+        return;
+      }
+
+      const updated = { ...foundCustomer, stamps: data.newStamps };
+      setFoundCustomer(updated);
+
+      const displayName = foundCustomer.name ? foundCustomer.name.split(" ")[0] : "Customer";
+      if (data.isComplete) {
+        setStampResult(`${data.stampsAdded > 1 ? "2 stamps added! 🎉" : "Stamped! 🎉"} ${displayName} has completed their card.`);
+      } else {
+        setStampResult(`${data.stampsAdded > 1 ? "2 stamps" : "Stamped"}! ${displayName} now has ${data.newStamps} stamp${data.newStamps !== 1 ? "s" : ""}.`);
+      }
+    } catch {
       setLookupError("Couldn't add stamp. Please try again.");
-      setStamping(false);
-      return;
-    }
-
-    const updated = { ...foundCustomer, stamps: newStamps };
-    setFoundCustomer(updated);
-
-    const displayName = foundCustomer.name ? foundCustomer.name.split(" ")[0] : "Customer";
-    if (newStamps >= business.reward_stamps_needed) {
-      setStampResult(`${stampsToAdd > 1 ? "2 stamps added! 🎉" : "Stamped! 🎉"} ${displayName} has completed their card.`);
-    } else {
-      setStampResult(`${stampsToAdd > 1 ? "2 stamps" : "Stamped"}! ${displayName} now has ${newStamps} stamp${newStamps !== 1 ? "s" : ""}.`);
     }
     setStamping(false);
 
@@ -146,48 +151,27 @@ function StaffContent() {
       return;
     }
 
-    // Find pending redemption
-    const { data: redemption } = await supabase
-      .from("redemptions")
-      .select("id, customer_id, confirmed_at")
-      .eq("business_id", business.id)
-      .eq("code", code)
-      .is("confirmed_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    try {
+      const res = await fetch("/api/loyalty/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, businessId: business.id }),
+      });
+      const data = await res.json();
 
-    if (!redemption) {
-      setRedeemError("Code not found or already used. Ask the customer to try again.");
-      setRedeeming(false);
-      return;
+      if (!res.ok) {
+        setRedeemError(data.error || "Code not found or already used. Ask the customer to try again.");
+        setRedeeming(false);
+        return;
+      }
+
+      setRedeemResult({
+        name: data.customerName || "Customer",
+        reward: data.reward || business.reward_description,
+      });
+    } catch {
+      setRedeemError("Something went wrong. Please try again.");
     }
-
-    // Get customer details
-    const { data: customer } = await supabase
-      .from("customers")
-      .select("name, stamps")
-      .eq("id", redemption.customer_id)
-      .single();
-
-    // Confirm redemption and reset customer stamps
-    const newStamps = Math.max(0, (customer?.stamps || 0) - business.reward_stamps_needed);
-
-    await Promise.all([
-      supabase
-        .from("redemptions")
-        .update({ confirmed_at: new Date().toISOString() })
-        .eq("id", redemption.id),
-      supabase
-        .from("customers")
-        .update({ stamps: newStamps })
-        .eq("id", redemption.customer_id),
-    ]);
-
-    setRedeemResult({
-      name: customer?.name || "Customer",
-      reward: business.reward_description,
-    });
     setCodeInput("");
     setRedeeming(false);
   }

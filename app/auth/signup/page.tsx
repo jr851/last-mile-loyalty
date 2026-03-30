@@ -35,13 +35,8 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.user) {
-      // Account created — go to setup wizard
-      router.push("/setup");
-    } else {
-      // Supabase email confirmation required
-      router.push("/auth/check-email");
-    }
+    // Always send to check-email page — they must verify before continuing
+    router.push("/auth/check-email");
   }
 
   return (
@@ -68,7 +63,7 @@ export default function SignupPage() {
                 required
                 autoComplete="email"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                placeholder="you@yourcafe.com"
+                placeholder="you@yourbusiness.com"
               />
             </div>
 
@@ -126,12 +121,6 @@ export default function SignupPage() {
           Already have an account?{" "}
           <Link href="/auth/login" className="text-amber-600 font-medium hover:underline">
             Sign in
-          </Link>
-        </p>
-
-        <p className="text-center mt-6">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
-            ← Back to home
           </Link>
         </p>
       </div>

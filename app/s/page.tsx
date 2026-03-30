@@ -1,10 +1,10 @@
-"use client";
-
+'use client';
+export const runtime = 'edge';
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import type { Business, Customer } from "@/lib/types";
 
+import { getSupabase } from '@/lib/supabase';
 function StaffStampContent() {
   const searchParams = useSearchParams();
   const customerId = searchParams.get("c") || "";
@@ -15,14 +15,20 @@ function StaffStampContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // PIN gate
+  // PIN gate — set to true to re-enable for production
+  const PIN_GATE_ENABLED = false;
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(!PIN_GATE_ENABLED);
 
   // Stamp state
   const [stamping, setStamping] = useState(false);
   const [stamped, setStamped] = useState(false);
+
+  function maskPhone(phone: string) {
+    if (phone.length < 6) return phone;
+    return phone.slice(0, -4).replace(/./g, "•") + phone.slice(-4);
+  }
 
   useEffect(() => {
     if (!customerId || !slug) {
@@ -33,8 +39,8 @@ function StaffStampContent() {
 
     async function loadData() {
       const [bizRes, custRes] = await Promise.all([
-        supabase.from("businesses").select("*").eq("slug", slug).single(),
-        supabase.from("customers").select("*").eq("id", customerId).single(),
+        getSupabase().from("businesses").select("*").eq("slug", slug).single(),
+        getSupabase().from("customers").select("*").eq("id", customerId).single(),
       ]);
 
       if (!bizRes.data) {
@@ -71,21 +77,25 @@ function StaffStampContent() {
     if (!customer || !business) return;
     setStamping(true);
 
-    const stampsToAdd = business.double_stamps_active ? 2 : 1;
-    const newStamps = customer.stamps + stampsToAdd;
-    const { error: updateError } = await supabase
-      .from("customers")
-      .update({ stamps: newStamps })
-      .eq("id", customer.id);
+    try {
+      const res = await fetch("/api/loyalty/stamp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: customer.id, businessId: business.id }),
+      });
+      const data = await res.json();
 
-    if (updateError) {
+      if (!res.ok) {
+        setError(data.error || "Couldn't add stamp. Please try again.");
+        setStamping(false);
+        return;
+      }
+
+      setCustomer({ ...customer, stamps: data.newStamps });
+      setStamped(true);
+    } catch {
       setError("Couldn't add stamp. Please try again.");
-      setStamping(false);
-      return;
     }
-
-    setCustomer({ ...customer, stamps: newStamps });
-    setStamped(true);
     setStamping(false);
   }
 
@@ -169,7 +179,7 @@ function StaffStampContent() {
                 </div>
                 <div>
                   <div className="font-semibold text-gray-900">{customer.name || "Guest"}</div>
-                  <div className="text-gray-400 text-xs">{customer.phone}</div>
+                  <div className="text-gray-400 text-xs">{maskPhone(customer.phone)}</div>
                 </div>
               </div>
 
@@ -246,6 +256,13 @@ function StaffStampContent() {
                     🎉 Card complete — they can claim their reward!
                   </p>
                 )}
+                <button
+                  onClick={() => window.history.back()}
+                  className="mt-4 text-white font-semibold py-3 px-6 rounded-xl text-sm"
+                  style={{ backgroundColor: business.brand_color }}
+                >
+                  ← Back to staff dashboard
+                </button>
               </div>
             )}
           </div>
