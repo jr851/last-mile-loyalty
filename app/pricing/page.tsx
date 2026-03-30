@@ -16,7 +16,7 @@ export default function PricingPage() {
       return;
     }
     if (planId === 'enterprise') {
-      router.push('/contact');
+      router.push('/auth/signup?plan=enterprise');
       return;
     }
 
@@ -134,7 +134,7 @@ export default function PricingPage() {
         'Referral programme',
         '+$199/mo per additional 10k band',
       ],
-      cta: 'Contact Us',
+      cta: 'Get Started',
       highlight: false,
       badge: null,
       note: 'Volume discounts built in',
@@ -312,10 +312,7 @@ export default function PricingPage() {
         {/* Footer note */}
         <div className="text-center mt-12 space-y-2">
           <p className="text-slate-400">All paid plans include a 14-day free trial.</p>
-          <p className="text-slate-500 text-sm">
-            Prices in AUD. Need help choosing?{' '}
-            <Link href="/contact" className="text-teal-400 hover:underline">Get in touch</Link>
-          </p>
+          <p className="text-slate-500 text-sm">Prices in AUD.</p>
         </div>
       </div>
       <Footer />

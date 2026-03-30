@@ -48,7 +48,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: 'How do I get support?',
-    answer: 'You can reach us via the contact form on our website. We aim to respond within one business day. Paid plans include priority support.',
+    answer: 'Log in to your dashboard and use the Contact Us form to reach our team. We aim to respond within one business day. Paid plans include priority support.',
   },
 ];
 
@@ -104,10 +104,7 @@ export default function FAQPage() {
           </div>
 
           <div className="text-center mt-10">
-            <p className="text-slate-400 mb-4">Still have questions?</p>
-            <Link href="/contact" className="inline-block px-6 py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg font-semibold transition-colors">
-              Get in touch
-            </Link>
+            <p className="text-slate-400 mb-4">Still have questions? Log in to your dashboard to contact us.</p>
           </div>
         </div>
       </div>
