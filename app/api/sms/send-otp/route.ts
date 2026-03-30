@@ -39,14 +39,16 @@ function getClientIp(req: Request): string {
 
 /** Send SMS via Twilio REST API — no Twilio SDK needed in edge runtime */
 async function sendTwilioSms(to: string, body: string): Promise<void> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID
-  const authToken = process.env.TWILIO_AUTH_TOKEN
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER
+  const accountSid = (process.env.TWILIO_ACCOUNT_SID ?? '').trim()
+  const authToken = (process.env.TWILIO_AUTH_TOKEN ?? '').trim()
+  const fromNumber = (process.env.TWILIO_PHONE_NUMBER ?? '').trim()
 
   if (!accountSid || !authToken || !fromNumber) {
+    console.error(`[Twilio] Missing creds — sid:${!!accountSid} token:${!!authToken} from:${!!fromNumber}`)
     throw new Error('Twilio credentials not configured')
   }
 
+  console.log(`[Twilio] Sending — sid len:${accountSid.length} token len:${authToken.length} from len:${fromNumber.length} sid prefix:${accountSid.slice(0,4)}`)
   const credentials = btoa(`${accountSid}:${authToken}`)
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
 
