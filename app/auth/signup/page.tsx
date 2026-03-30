@@ -35,6 +35,15 @@ export default function SignupPage() {
       return;
     }
 
+    // Supabase returns a user with empty identities array when the email already exists
+    if (data?.user?.identities && data.user.identities.length === 0) {
+      setError(
+        "An account with this email already exists. Please sign in instead, or reset your password if you've forgotten it."
+      );
+      setLoading(false);
+      return;
+    }
+
     // Always send to check-email page — they must verify before continuing
     router.push("/auth/check-email");
   }
@@ -100,6 +109,16 @@ export default function SignupPage() {
             {error && (
               <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-100">
                 {error}
+                {error.includes("already exists") && (
+                  <div className="mt-2 flex gap-3 text-xs">
+                    <Link href="/auth/login" className="text-amber-600 font-medium hover:underline">
+                      Sign in
+                    </Link>
+                    <Link href="/auth/forgot-password" className="text-amber-600 font-medium hover:underline">
+                      Reset password
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
 
