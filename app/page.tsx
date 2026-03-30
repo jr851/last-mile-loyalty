@@ -8,11 +8,10 @@ export default function HomePage() {
       <nav className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center font-bold">L</div>
-            <span className="font-bold text-lg">Last Mile Loyalty</span>
+            <span className="font-semibold text-sm md:text-base text-slate-200">Keep them coming back — big brand loyalty, neighbourhood scale</span>
           </div>
           <div className="flex gap-4">
-            <Link href="/auth/login" className="px-4 py-2 rounded hover:bg-slate-700">Sign In</Link>
+            <Link href="/auth/login" className="px-4 py-2 rounded hover:bg-slate-700">Business Sign In</Link>
             <Link href="/auth/signup" className="px-4 py-2 bg-teal-600 rounded hover:bg-teal-700">Get Started</Link>
           </div>
         </div>
@@ -24,10 +23,10 @@ export default function HomePage() {
           <h1 className="text-5xl font-bold mb-6">Turn every customer into a regular</h1>
           <p className="text-xl text-slate-300 mb-8">Digital loyalty programme with Apple & Google Wallet integration. Built by enterprise loyalty experts for independent businesses.</p>
           <div className="flex gap-4 justify-center">
-            <Link href="/auth/signup" className="px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold">Start Free Trial</Link>
+            <Link href="/auth/signup" className="px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold">Trial Free Tier</Link>
             <Link href="#how-it-works" className="px-8 py-3 border border-slate-600 rounded-lg hover:border-slate-400">Learn More</Link>
           </div>
-          <p className="text-sm text-slate-400 mt-4">14-day free trial. No credit card required. Set up in 5 minutes.</p>
+          <p className="text-sm text-slate-400 mt-4">Free tier covers up to 50 active members. No credit card required. Set up in 5 minutes.</p>
         </div>
       </section>
 
@@ -48,8 +47,8 @@ export default function HomePage() {
             </div>
             <div className="p-6 rounded-lg bg-slate-700/50 border border-slate-600">
               <Lock className="w-8 h-8 text-teal-400 mb-4" />
-              <h3 className="font-bold text-lg mb-2">Enterprise Security</h3>
-              <p className="text-slate-300">Built with the same standards as Tesco & Woolworths loyalty systems.</p>
+              <h3 className="font-bold text-lg mb-2">Enterprise Standards</h3>
+              <p className="text-slate-300">Built with the same standards as leading retail loyalty systems.</p>
             </div>
           </div>
         </div>
@@ -60,7 +59,7 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to get started?</h2>
           <p className="text-lg text-slate-300 mb-8">Join the businesses already using Last Mile Loyalty to keep customers coming back.</p>
-          <Link href="/auth/signup" className="inline-block px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold text-lg">Start Your Free Trial</Link>
+          <Link href="/auth/signup" className="inline-block px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold text-lg">Trial Free Tier</Link>
         </div>
       </section>
 
