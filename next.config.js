@@ -34,8 +34,10 @@ const nextConfig = {
         http2: false,
         child_process: false,
         os: false,
-        // Note: crypto is intentionally NOT stubbed — Cloudflare Workers provides
-        // the Web Crypto API globally, and @supabase/supabase-js needs it.
+        // crypto is provided at runtime by Cloudflare Workers (nodejs_compat).
+        // We stub it for webpack so the build succeeds, then the real module
+        // is resolved at runtime by the Workers environment.
+        crypto: false,
       };
     }
     return config;
