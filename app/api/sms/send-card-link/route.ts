@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 import { NextResponse } from 'next/server'
 
 /** Send SMS via Twilio REST API (no SDK needed in edge runtime) */
