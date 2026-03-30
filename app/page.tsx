@@ -31,7 +31,7 @@ export default function HomePage() {
           <p className="text-lg sm:text-xl text-slate-300 mb-8">Digital loyalty programme with Apple & Google Wallet integration. Built by enterprise loyalty experts for independent businesses.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold">Trial Free Tier</Link>
-            <Link href="#how-it-works" className="px-8 py-3 border border-slate-600 rounded-lg hover:border-slate-400">Learn More</Link>
+            <Link href="/pricing" className="px-8 py-3 border border-slate-600 rounded-lg hover:border-slate-400">View Pricing</Link>
           </div>
           <p className="text-sm text-slate-400 mt-4">Free tier covers up to 50 active members. No credit card required. Set up in 5 minutes.</p>
         </div>
@@ -202,7 +202,10 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to get started?</h2>
           <p className="text-lg text-slate-300 mb-8">Join the businesses already using Last Mile Loyalty to keep customers coming back.</p>
-          <Link href="/auth/signup" className="inline-block px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold text-lg">Trial Free Tier</Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/signup" className="inline-block px-8 py-3 bg-teal-600 rounded-lg hover:bg-teal-700 font-semibold text-lg">Trial Free Tier</Link>
+            <Link href="/pricing" className="inline-block px-8 py-3 border border-slate-600 rounded-lg hover:border-slate-400 font-semibold text-lg">See Plans</Link>
+          </div>
         </div>
       </section>
 
