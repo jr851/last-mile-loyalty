@@ -50,7 +50,7 @@ export default function HomePage() {
             <div className="p-6 rounded-lg bg-slate-700/50 border border-slate-600">
               <TrendingUp className="w-8 h-8 text-teal-400 mb-4" />
               <h3 className="font-bold text-lg mb-2">Increase Visits</h3>
-              <p className="text-slate-300">Smart notifications bring customers back. Average 3.2x more repeat visits from loyalty members.</p>
+              <p className="text-slate-300">Smart notifications bring customers back at just the right time.</p>
             </div>
             <div className="p-6 rounded-lg bg-slate-700/50 border border-slate-600">
               <Lock className="w-8 h-8 text-teal-400 mb-4" />
