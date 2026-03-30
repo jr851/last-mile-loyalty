@@ -226,11 +226,11 @@ export default function DashboardPage() {
         {/* Navigation */}
         <div className="grid grid-cols-2 gap-4">
           <Link href="/setup" className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:border-gray-300 transition-colors">
-            <div className="text-xl mb-1">\u2699\ufe0f</div>
+            <div className="text-xl mb-1">⚙️</div>
             <p className="text-sm font-medium text-gray-900">Edit programme</p>
           </Link>
           <Link href={`/s/?b=${business.slug}`} className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:border-gray-300 transition-colors">
-            <div className="text-xl mb-1">\u2b50</div>
+            <div className="text-xl mb-1">⭐</div>
             <p className="text-sm font-medium text-gray-900">Stamp customers</p>
           </Link>
         </div>
