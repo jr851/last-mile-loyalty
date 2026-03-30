@@ -41,20 +41,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">☕</div>
-          <h1 className="text-2xl font-bold text-amber-900">Welcome back</h1>
-          <p className="text-amber-700 mt-1">Sign in to your loyalty dashboard</p>
+          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center font-bold text-white">L</div>
+            <span className="font-bold text-lg text-white">Last Mile Loyalty</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+          <p className="text-slate-400 mt-1">Sign in to your loyalty dashboard</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-6">
+        <div className="bg-slate-800/80 rounded-2xl shadow-sm border border-slate-700 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Email address
               </label>
               <input
@@ -63,13 +66,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                className="w-full px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 placeholder="you@yourbusiness.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Password
               </label>
               <input
@@ -78,19 +81,19 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                className="w-full px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
 
             <div className="text-right">
-              <Link href="/auth/forgot-password" className="text-xs text-amber-600 hover:underline">
+              <Link href="/auth/forgot-password" className="text-xs text-teal-400 hover:underline">
                 Forgot your password?
               </Link>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-100">
+              <div className="bg-red-900/30 text-red-400 text-sm px-3 py-2 rounded-lg border border-red-800/50">
                 {error}
               </div>
             )}
@@ -98,16 +101,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-semibold py-2.5 rounded-lg transition-colors"
+              className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-800 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-600 mt-4">
+        <p className="text-center text-sm text-slate-400 mt-4">
           New here?{" "}
-          <Link href="/auth/signup" className="text-amber-600 font-medium hover:underline">
+          <Link href="/auth/signup" className="text-teal-400 font-medium hover:underline">
             Create your loyalty programme
           </Link>
         </p>

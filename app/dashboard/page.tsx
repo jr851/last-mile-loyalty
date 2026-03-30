@@ -106,7 +106,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-sm border border-gray-100">
-          <div className="text-4xl mb-4">\u2615</div>
+          <div className="text-4xl mb-4">☕</div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">No programme yet</h1>
           <p className="text-gray-500 mb-6">Set up your loyalty programme to start collecting customers.</p>
           <Link href="/setup" className="inline-block px-6 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors">

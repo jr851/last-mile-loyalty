@@ -2,6 +2,7 @@ import { Zap, Lock, Smartphone, Users, TrendingUp, CheckCircle, QrCode, CreditCa
 import Link from 'next/link';
 import Image from 'next/image';
 import MobileNav from './components/MobileNav';
+import Footer from './components/Footer';
 
 export default function HomePage() {
   return (
@@ -210,9 +211,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-700 py-8 px-4 text-center text-slate-400">
-        <p>&copy; 2026 Last Mile Loyalty. Built for independent businesses.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

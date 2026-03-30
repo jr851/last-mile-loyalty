@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Footer from '../components/Footer';
 
 export default function PricingPage() {
   const router = useRouter();
@@ -141,11 +142,14 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col">
+      <div className="max-w-7xl mx-auto px-4 py-16 flex-1">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="inline-block mb-8 text-2xl">☕</Link>
+          <Link href="/" className="inline-flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center font-bold text-white">L</div>
+            <span className="font-bold text-lg">Last Mile Loyalty</span>
+          </Link>
           <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
           <p className="text-xl text-slate-300 mb-8">Start free. Upgrade as you grow.</p>
 
@@ -309,11 +313,12 @@ export default function PricingPage() {
         <div className="text-center mt-12 space-y-2">
           <p className="text-slate-400">All paid plans include a 14-day free trial.</p>
           <p className="text-slate-500 text-sm">
-            Prices in USD. Need help choosing?{' '}
+            Prices in AUD. Need help choosing?{' '}
             <Link href="/contact" className="text-teal-400 hover:underline">Get in touch</Link>
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
