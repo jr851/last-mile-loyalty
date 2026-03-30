@@ -20,6 +20,11 @@ jobs:
 
       - run: npm ci
 
+      - name: Write env file for build
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.production
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.production
+
       - run: npx @cloudflare/next-on-pages
         env:
           NODE_ENV: production
