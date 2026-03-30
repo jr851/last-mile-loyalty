@@ -1,0 +1,2 @@
+# Redirect /join/<slug> to query param format
+/join/:slug /join?b=:slug 301
