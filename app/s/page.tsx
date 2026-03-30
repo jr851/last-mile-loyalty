@@ -102,7 +102,7 @@ function StaffStampContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+        <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
       </div>
     );
   }
@@ -197,7 +197,7 @@ function StaffStampContent() {
                           : { borderColor: "#e5e7eb" }
                       }
                     >
-                      {stamped ? "☕" : ""}
+                      {stamped ? "✓" : ""}
                     </div>
                   );
                 })}
@@ -206,7 +206,7 @@ function StaffStampContent() {
               <p className="text-sm text-gray-500">
                 {customer.stamps} / {business.reward_stamps_needed} stamps
                 {isCardComplete && (
-                  <span className="text-amber-600 font-medium ml-2">— Card complete! 🎉</span>
+                  <span className="text-teal-600 font-medium ml-2">— Card complete! 🎉</span>
                 )}
               </p>
             </div>
@@ -237,7 +237,7 @@ function StaffStampContent() {
                 className="rounded-2xl p-5 text-center border"
                 style={{ backgroundColor: business.brand_color + "15", borderColor: business.brand_color + "40" }}
               >
-                <div className="text-4xl mb-2">☕</div>
+                <div className="text-4xl mb-2">✓</div>
                 <p
                   className="font-bold text-lg"
                   style={{ color: business.brand_color }}
@@ -277,7 +277,7 @@ export default function StaffStampPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+          <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
         </div>
       }
     >

@@ -120,7 +120,7 @@ function WalletButtons({ customerId, slug }: { customerId: string; slug: string 
         )}
       </div>
       {walletError && (
-        <div className="bg-amber-50 text-amber-800 text-xs px-3 py-2 rounded-lg border border-amber-200">
+        <div className="bg-red-50 text-red-700 text-xs px-3 py-2 rounded-lg border border-red-100">
           {walletError}
         </div>
       )}
@@ -166,7 +166,7 @@ function CardContent() {
     }
 
     const [bizRes, custRes] = await Promise.all([
-      getSupabase().from("businesses").select("*").eq("slug", slug).single(),
+      getSupabase().from("businesses_public").select("*").eq("slug", slug).single(),
       getSupabase().from("customers").select("*").eq("id", customerId).single(),
     ]);
 
@@ -232,16 +232,16 @@ function CardContent() {
 
   if (!slug) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
-        <p className="text-amber-700">No loyalty programme specified.</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <p className="text-slate-500">No loyalty programme specified.</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
-        <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
       </div>
     );
   }
@@ -348,7 +348,7 @@ function CardContent() {
                       : { borderColor: "#e5e7eb", color: "#9ca3af" }
                   }
                 >
-                  {stamped ? "☕" : ""}
+                  {stamped ? "✓" : ""}
                 </div>
               );
             })}
@@ -468,8 +468,8 @@ export default function CardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-amber-50 flex items-center justify-center">
-          <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
         </div>
       }
     >

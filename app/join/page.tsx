@@ -242,25 +242,25 @@ function JoinContent() {
 
   if (!slug) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
-        <p className="text-amber-700">No loyalty programme specified.</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <p className="text-slate-500">No loyalty programme specified.</p>
       </div>
     );
   }
   if (loading) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
-        <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
       </div>
     );
   }
 
   if (error && !business) {
     return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="text-4xl mb-3">😕</div>
-          <p className="text-amber-800 font-medium">{error}</p>
+          <p className="text-slate-700 font-medium">{error}</p>
         </div>
       </div>
     );
@@ -274,7 +274,7 @@ function JoinContent() {
       <div
         className="text-white px-4 pt-10 pb-8 text-center"
         style={{ backgroundColor: business.brand_color }}
-      >        <div className="text-4xl mb-2">☕</div>
+      >        <div className="text-4xl mb-2">🎁</div>
         <h1 className="text-2xl font-bold">{business.name}</h1>
         <p className="text-white/80 mt-1 text-sm">Loyalty Programme</p>
       </div>
@@ -307,7 +307,7 @@ function JoinContent() {
                   }`}
                   style={i === 0 ? { backgroundColor: business.brand_color, borderColor: business.brand_color } : {}}
                 >
-                  {i === 0 ? "☕" : ""}
+                  {i === 0 ? "✓" : ""}
                 </div>
               ))}
             </div>
@@ -437,7 +437,7 @@ function JoinContent() {
                   disabled={verifying || otpCode.length < 4}                  className="w-full text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
                   style={{ backgroundColor: business.brand_color }}
                 >
-                  {verifying ? "Verifying..." : "Verify & join ☕"}
+                  {verifying ? "Verifying..." : "Verify & join"}
                 </button>
               </form>
 
@@ -463,7 +463,7 @@ function JoinContent() {
           {/* Submitting state */}
           {step === "submitting" && (
             <div className="bg-white rounded-2xl p-5 border border-gray-100 text-center">
-              <div className="text-2xl animate-pulse mb-2">☕</div>              <p className="text-gray-600 text-sm">Setting up your card...</p>
+              <div className="text-teal-500 text-sm font-medium animate-pulse mb-2">Loading…</div>              <p className="text-gray-600 text-sm">Setting up your card...</p>
             </div>
           )}
         </div>
@@ -476,8 +476,8 @@ export default function JoinPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-amber-50 flex items-center justify-center">
-          <div className="text-amber-400 text-2xl animate-pulse">☕</div>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="text-teal-500 text-sm font-medium animate-pulse">Loading…</div>
         </div>
       }
     >
