@@ -1,3 +1,13 @@
+# ⚠️ DEPRECATED — DO NOT USE THIS REPO
+
+**This repository has been superseded by [`jr851/loyalty-app`](https://github.com/jr851/loyalty-app) (private).**
+
+All code has been synced to `loyalty-app`, which is the repo connected to Vercel for production deployments at [lastmileloyalty.com](https://lastmileloyalty.com).
+
+**Do not push changes here.** Push to `jr851/loyalty-app` instead.
+
+---
+
 # Loyalty App
 
 A self-service loyalty programme builder for cafés and small businesses. Built with Next.js, Supabase, and Tailwind CSS.
